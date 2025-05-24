@@ -2,3 +2,7 @@
 .averia-serif-libre {
   font-family: "Averia Serif Libre", serif;
 }
+.required-asterisk {
+  color: red;
+  content :"*";
+}
