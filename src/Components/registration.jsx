@@ -11,7 +11,8 @@ const userType = [
 ];
 const Registration = () => {
 const [selectedUserType, setSelectedUserType] = React.useState(null);
- const [showTooltip, setShowTooltip] = React.useState(false);
+ const [showIdTooltip, setShowIdTooltip] = React.useState(false);
+  const [showDobTooltip, setShowDobTooltip] = React.useState(false);
 
 return (
     <div className="border flex p-10 gap-10">
@@ -84,9 +85,9 @@ return (
                 </div>
             </div>
             <div className="names">
-                <h1 className="averia-serif-libre text-blue-800">Full Name</h1>
+                <h1 className="averia-serif-libre text-blue-800">FULL NAME</h1>
             </div>
-            <div className="namefields">
+            <div className="namefields flex gap-4">
                 <input
                     type="text"
                     id="firstname"
@@ -94,9 +95,6 @@ return (
                     required
                     className="mb-2 p-2 border rounded "
                     placeholder=    "First Name *"
-                            
-                        
-                    
                 />
                 <input
                     type="test"
@@ -111,7 +109,7 @@ return (
                     id="lastname"
                     name="lastname"
                     required
-                    className="mb-4 p-2 border rounded"
+                    className="mb-2 p-2 border rounded"
                     placeholder="Last Name *"
                 />
             </div>
@@ -126,11 +124,10 @@ return (
             required
             className="mb-2 p-2 border rounded w-full"
             placeholder="National ID Number *"
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}
+            onMouseEnter={() => setShowIdTooltip(true)}
+            onMouseLeave={() => setShowIdTooltip(false)}
         />
-        {console.log(showTooltip)}
-        {showTooltip && (
+        {showIdTooltip && (
                 <div className="absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-max p-2 text-sm text-white bg-gray-800 rounded shadow-lg opacity-90">
                   Enter your ID or Passport Number
                   <div className="absolute left-1/2 transform -translate-x-1/2 top-full h-0 w-0 border-x-8 border-x-transparent border-t-8 border-t-gray-800"></div>
@@ -138,13 +135,73 @@ return (
               )}
     </div>
     </div>
-  
-        
+</div>
+<div className="demographics">
+    <h1 className="averia-serif-libre text-blue-800">DEMOGRAPHICS</h1>
+    <div className="demographics-holder flex gap-4">
+   <select
+      className="border rounded mb-2 p-2 w-full"
+      id="gender"
+      name="gender"
+      required
+      defaultValue=""
+    >
+      <option value="" disabled>
+        Gender
+      </option>
+      <option value="Male">MALE</option>
+      <option value="Female">FEMALE</option>
+      <option value="Other">OTHER</option>
+    </select>
+    <div className="relative inline-block w-full">
+        <input
+        type="date"
+        id="dob"
+        name="dob"
+        required
+        className="mb-2 p-2 border rounded w-full"
+        onMouseEnter={() => setShowDobTooltip(true)}
+        onMouseLeave={() => setShowDobTooltip(false)}
+    />
+        {showDobTooltip && (
+            <div className="absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-max p-2 text-sm text-white bg-gray-800 rounded shadow-lg opacity-90">
+                Select your Date of Birth
+                <div className="absolute left-1/2 transform -translate-x-1/2 top-full h-0 w-0 border-x-8 border-x-transparent border-t-8 border-t-gray-800"></div>
+            </div>
+        )}
+    </div>
+    
+    <select
+    className="maritual-status border rounded mb-2 p-2 w-full"
+    >
+         <option value="" disabled>
+        Maritual Status
+      </option>
+<option value="Single">SINGLE</option>
+<option value="Married">MARRIED</option>
+<option value="Divorced">DIVORCED</option>
+<option value="Widowed">WIDOWED</option>
+<option value="Separated">SEPARATED</option>
+<option value="Other">OTHER</option>
+    </select>
+    </div>
  
 </div>
-                <button type="submit" className="bg-blue-900 text-white py-2 rounded">
-                    Register
-                </button>
+ <div className="divider h-0.25 w-11/12 bg-gray-600 mx-auto"></div>
+                <div className="back-next-buttons flex justify-between mt-4">
+                    <button
+                        type="button"
+                        className="text-green-400 border border-green-400 px-4 py-2 rounded-4xl hover:bg-green-400"
+                    >
+                        Back
+                    </button>
+                    <button
+                        type="submit"
+                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                    >
+                        Next
+                    </button>   
+                </div>
             </form>
         </div>
     </div>
