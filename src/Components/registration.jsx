@@ -188,20 +188,34 @@ return (
  
 </div>
  <div className="divider h-0.25 w-11/12 bg-gray-600 mx-auto"></div>
-                <div className="back-next-buttons flex justify-between mt-4">
-                    <button
-                        type="button"
-                        className="text-green-400 border border-green-400 px-4 py-2 rounded-4xl hover:bg-green-400"
-                    >
-                        Back
-                    </button>
-                    <button
-                        type="submit"
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    >
-                        Next
-                    </button>   
-                </div>
+               <div className="back-next-buttons flex justify-between mt-4 averia-serif-libre">
+            <button
+              type="button"
+              className="group relative flex items-center justify-center gap-2
+                         text-green-700 border border-green-950 px-4 py-2 rounded-4xl
+                         overflow-hidden transition-colors duration-300 ease-in-out
+                         hover:bg-green-600 hover:text-white"
+            >
+              <span className="transition-transform duration-300 ease-in-out group-hover:-translate-x-1">
+                &larr;
+              </span>{" "}
+              {/* Left arrow */}
+              Back
+            </button>
+            <button
+              type="submit"
+              className="group relative flex items-center justify-center gap-2
+                         text-green-700 border border-green-950 px-4 py-2 rounded-4xl
+                         overflow-hidden transition-colors duration-300 ease-in-out
+                         hover:bg-green-600 hover:text-white"
+            >
+              Next
+              <span className="transition-transform duration-300 ease-in-out group-hover:translate-x-1">
+                &rarr;
+              </span>{" "}
+              {/* Right arrow */}
+            </button>
+          </div>
             </form>
         </div>
     </div>
