@@ -17,7 +17,7 @@ const userType = [
 ];
 
 const Registration = ({onRegistrationComplete}) => {
-  const [selectedUserType, setSelectedUserType] = React.useState(null);
+const [selectedRoles, setSelectedRoles] = React.useState([]);
   const [showIdTooltip, setShowIdTooltip] = React.useState(false);
   const [showDobTooltip, setShowDobTooltip] = React.useState(false);
   const [step, setStep] = React.useState(1);
@@ -51,7 +51,24 @@ const Registration = ({onRegistrationComplete}) => {
       [name]: value
     }));
   };
+const toggleRole = (role) => {
+    if (role === "Officer") {
+      // Selecting Officer clears other selections
+      setSelectedRoles(prev =>
+        prev.includes("Officer") ? [] : ["Officer"]
+      );
+    } else {
+      // Prevent selecting Person/Guardian if Officer is already selected
+      if (selectedRoles.includes("Officer")) return;
 
+      // Toggle Person or Guardian
+      setSelectedRoles(prev =>
+        prev.includes(role)
+          ? prev.filter(r => r !== role)
+          : [...prev, role]
+      );
+    }
+  };
   const handleFinalNext = () => {
     setShowConfirmModal(true);
   };
@@ -71,7 +88,7 @@ const Registration = ({onRegistrationComplete}) => {
   const handleModalSubmit = () => {
     setShowConfirmModal(false);
     console.log("Form confirmed and submitted!", { 
-      userType: selectedUserType, 
+      userType: selectedRoles, 
       ...formData 
     });
     if (onRegistrationComplete){
@@ -104,41 +121,39 @@ const Registration = ({onRegistrationComplete}) => {
         <div className="divider h-0.5 w-11/12 bg-gray-600 mx-auto"></div>
 
         <div className="flex flex-col gap-4">
-          <div className="user-type-radios">
-            <h1 className="text-blue-800 font-semibold">USER TYPE</h1>
-            <div className="user-type flex gap-4">
-              {userType.map((user) => (
-                <div
-                  key={user.id}
-                  className={`flex gap-2 items-center border py-2 px-4 rounded cursor-pointer ${
-                    selectedUserType === user.name
-                      ? "border-green-600 text-green-700"
-                      : "border-gray-300"
-                  }`}
-                  onClick={() => setSelectedUserType(user.name)}
-                >
-                  <img src={user.icon} alt={user.name} className="w-6 h-6" />
-                  <label
-                    htmlFor={user.name}
-                    className={`text-sm ${
-                      selectedUserType === user.name ? "text-green-700" : ""
-                    }`}
-                  >
-                    {user.name}
-                  </label>
-                  <input
-                    type="radio"
-                    id={user.name}
-                    name="user-type"
-                    value={user.name}
-                    checked={selectedUserType === user.name}
-                    onChange={() => setSelectedUserType(user.name)}
-                    className="w-4 h-4 accent-green-600"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+         <div className="user-type-radios">
+  <h1 className="text-blue-800 font-semibold">USER TYPE</h1>
+  <div className="user-type flex gap-4 flex-wrap">
+    {userType.map((user) => {
+      const isSelected = selectedRoles.includes(user.name);
+      const isDisabled =
+        selectedRoles.includes("Officer") && user.name !== "Officer" ||
+        selectedRoles.length > 0 && selectedRoles.includes(user.name) === false && user.name === "Officer";
+
+      return (
+        <div
+          key={user.id}
+          className={`flex items-center gap-2 border px-4 py-2 rounded-full cursor-pointer transition ${
+            isSelected ? "border-green-600 text-green-700" : "border-gray-300"
+          } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+          onClick={() => {
+            if (!isDisabled) toggleRole(user.name);
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={isSelected}
+            readOnly
+            className="w-4 h-4 rounded-full accent-green-600 cursor-pointer"
+          />
+          <img src={user.icon} alt={user.name} className="w-5 h-5" />
+          <label className="text-sm">{user.name}</label>
+        </div>
+      );
+    })}
+  </div>
+</div>
+
 
           <div className="sections flex gap-4">
             <div className={`flex gap-2 border rounded-full p-2 ${step >= 1 ? 'bg-green-50 border-green-300' : ''}`}>
@@ -149,10 +164,14 @@ const Registration = ({onRegistrationComplete}) => {
               <div className={`number rounded-full h-6 w-6 flex items-center justify-center border text-sm ${step >= 2 ? 'bg-green-600 text-white border-green-600' : ''}`}>2</div>
               <h1 className="text-sm">Contact and Background</h1>
             </div>
-            <div className={`flex gap-2 border rounded-full p-2 ${step >= 3 ? 'bg-green-50 border-green-300' : ''}`}>
+            {
+              selectedRoles.includes("Person With Disability") &&
+ <div className={`flex gap-2 border rounded-full p-2 ${step >= 3 ? 'bg-green-50 border-green-300' : ''}`}>
               <div className={`number rounded-full h-6 w-6 flex items-center justify-center border text-sm ${step >= 3 ? 'bg-green-600 text-white border-green-600' : ''}`}>3</div>
               <h1 className="text-sm">Next of Kin</h1>
             </div>
+            }
+           
           </div>
 
           {/* Step 1: Bio Data */}
@@ -250,7 +269,8 @@ const Registration = ({onRegistrationComplete}) => {
                       </div>
                     )}
                   </div>
-                  <select 
+                  {
+selectedRoles.includes("Person With Disability") && <select 
                     className="maritual-status border rounded mb-2 p-2 w-full"
                     name="maritalStatus"
                     value={formData.maritalStatus}
@@ -266,6 +286,8 @@ const Registration = ({onRegistrationComplete}) => {
                     <option value="Separated">SEPARATED</option>
                     <option value="Other">OTHER</option>
                   </select>
+                  }
+                  
                 </div>
               </div>
             </>
@@ -295,7 +317,6 @@ const Registration = ({onRegistrationComplete}) => {
                   />
                 </div>
               </div>
-
               <div>
                 <h3 className="text-blue-800 font-semibold uppercase">Location</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -437,11 +458,12 @@ const Registration = ({onRegistrationComplete}) => {
           </div>
         </div>
       </div>
+      {console.log("selected type",selectedRoles)}
 
       {showConfirmModal && (
         <ConfirmRegistrationModal
           data={{
-            userType: selectedUserType,
+            userType: selectedRoles,
             ...formData
           }}
           onClose={() => setShowConfirmModal(false)}

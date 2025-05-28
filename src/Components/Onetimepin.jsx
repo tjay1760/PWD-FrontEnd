@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import wheelchairIcon from "../assets/Wheelchair man.png";
 
-const SetPasswordOTP = () => {
+const SetPasswordOTP = ({onOtpSetupComplete}) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']); // State to hold OTP digits
   const inputRefs = useRef([]); // Ref to manage focus on OTP input fields
 
@@ -36,7 +36,23 @@ const SetPasswordOTP = () => {
     console.log("OTP entered:", fullOtp);
     // Here you would typically send the OTP to your backend for verification
     // and then navigate to the password setting screen or dashboard.
-    alert(`Logging in with OTP: ${fullOtp}`);
+    // Show a green notification instead of alert
+    const notification = document.createElement('div');
+    notification.textContent = `Logging in with OTP: ${fullOtp}`;
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.background = '#22c55e';
+    notification.style.color = 'white';
+    notification.style.padding = '16px 24px';
+    notification.style.borderRadius = '8px';
+    notification.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+    notification.style.zIndex = 9999;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+      notification.remove();
+    }, 2500);
+    onOtpSetupComplete(); // Call the completion handler passed from the parent component
   };
 
   return (
