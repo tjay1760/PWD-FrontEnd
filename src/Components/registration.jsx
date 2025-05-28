@@ -22,6 +22,7 @@ const [selectedRoles, setSelectedRoles] = React.useState([]);
   const [showDobTooltip, setShowDobTooltip] = React.useState(false);
   const [step, setStep] = React.useState(1);
   const [showConfirmModal, setShowConfirmModal] = React.useState(false);
+  const [selectedOfficer, setSelectedOfficer] = React.useState(null);
   
   // Form data state
   const [formData, setFormData] = React.useState({
@@ -97,6 +98,9 @@ const toggleRole = (role) => {
 
     // Here you would typically submit to your backend
   };
+  const handleOfficerRoleChange = (role) => {
+    setSelectedOfficer(role);
+  };
 
   return (
     <div className="border flex p-10 gap-10">
@@ -140,12 +144,12 @@ const toggleRole = (role) => {
             if (!isDisabled) toggleRole(user.name);
           }}
         >
-          <input
-            type="checkbox"
-            checked={isSelected}
-            readOnly
-            className="w-4 h-4 rounded-full accent-green-600 cursor-pointer"
-          />
+<input
+  type="checkbox"
+  checked={isSelected}
+  readOnly
+  className="w-4 h-4 rounded-full cursor-pointer appearance-none border border-gray-400 checked:bg-green-600 checked:border-transparent focus:outline-none"
+/>
           <img src={user.icon} alt={user.name} className="w-5 h-5" />
           <label className="text-sm">{user.name}</label>
         </div>
@@ -177,6 +181,46 @@ const toggleRole = (role) => {
           {/* Step 1: Bio Data */}
           {step === 1 && (
             <>
+            {
+              selectedRoles.includes("Officer") && <div className="flex flex-col gap-4">
+      {/* Question Heading */}
+      <h3 className="text-lg font-semibold text-green-800">
+        Are you a Medical Assessment Officer or a County Health Director?
+      </h3>
+
+      {/* Checkbox Container */}
+      <div className=" p-4 rounded-md flex gap-8">
+        {/* Medical Assessment Officer Checkbox */}
+        <label className="flex items-center space-x-2 cursor-pointer">
+          <input
+            type="checkbox"
+            name="officerRole"
+            value="Medical Assessment Officer"
+            checked={selectedOfficer === 'Medical Assessment Officer'}
+            onChange={() => handleOfficerRoleChange('Medical Assessment Officer')}
+            className="form-checkbox h-4 w-4 text-green-600 rounded" // Tailwind form-checkbox for default styling, rounded for slight curve
+          />
+          <span className="text-gray-800">Medical Assessment Officer</span>
+        </label>
+
+        {/* County Health Director Checkbox */}
+        <label className="flex items-center space-x-2 cursor-pointer">
+          <input
+            type="checkbox"
+            name="officerRole"
+            value="County Health Director"
+            checked={selectedOfficer === 'County Health Director'}
+            onChange={() => handleOfficerRoleChange('County Health Director')}
+            className="form-checkbox h-4 w-4 text-green-600 rounded"
+          />
+          <span className="text-gray-800">County Health Director</span>
+        </label>
+      </div>
+
+     
+     
+    </div>
+            }
               <div className="names">
                 <h1 className="text-blue-800 font-semibold">FULL NAME</h1>
               </div>
@@ -317,7 +361,8 @@ selectedRoles.includes("Person With Disability") && <select
                   />
                 </div>
               </div>
-              <div>
+              {
+                selectedRoles.includes("Person With Disability") &&<div>
                 <h3 className="text-blue-800 font-semibold uppercase">Location</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <select 
@@ -344,6 +389,8 @@ selectedRoles.includes("Person With Disability") && <select
                   </select>
                 </div>
               </div>
+              }
+              
 
               <div>
                 <h3 className="text-blue-800 font-semibold uppercase">Occupation and Education</h3>
