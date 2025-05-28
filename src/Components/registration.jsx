@@ -1,4 +1,5 @@
 import React from "react";
+import { useState } from "react";
 
 // Mock images for demonstration
 import registrationImage from "../assets/Form Image.png";
@@ -7,6 +8,7 @@ import guardianIcon from "../assets/guardian.svg";
 import officerIcon from "../assets/officer.svg";
 import personIcon from "../assets/person.svg";
 import ConfirmRegistrationModal from "./ConfirmRegistrationModal"; // Import the confirmation modal component
+import ConfirmationDialog from "./ConfirmationDialog";
 
 // Confirmation Modal Component
 
@@ -17,12 +19,30 @@ const userType = [
 ];
 
 const Registration = ({onRegistrationComplete}) => {
-const [selectedRoles, setSelectedRoles] = React.useState([]);
+  const [selectedRoles, setSelectedRoles] = React.useState([]);
   const [showIdTooltip, setShowIdTooltip] = React.useState(false);
   const [showDobTooltip, setShowDobTooltip] = React.useState(false);
   const [step, setStep] = React.useState(1);
   const [showConfirmModal, setShowConfirmModal] = React.useState(false);
-  const [selectedOfficer, setSelectedOfficer] = React.useState(null);
+  const [selectedOfficer, setSelectedOfficer] = React.useState(null); // This is for 'Medical Assessment Officer' or 'County Health Director'
+  const [countyOfPractice, setCountyOfPractice] = useState('');
+  const [subCounty, setSubCounty] = useState('');
+  const [medicalFacility, setMedicalFacility] = useState('');
+  const [medicalLicenceNumber, setMedicalLicenceNumber] = useState('');
+  const [speciality, setSpeciality] = useState('');
+  const [showOfficerConfirmDialog, setShowOfficerConfirmDialog] = useState(false); // Controls the dialog for 'Officer' user type
+
+   const counties = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru'];
+  const subCounties = {
+    Nairobi: ['Langata', 'Dagoretti', 'Embakasi'],
+    Mombasa: ['Kisauni', 'Nyali', 'Changamwe'],
+    Kisumu: ['Kisumu Central', 'Nyando'],
+    Nakuru: ['Nakuru Town East', 'Nakuru Town West']
+  };
+  const medicalFacilities = ['Kenyatta National Hospital', 'Aga Khan Hospital', 'Nairobi Hospital', 'Moi Teaching and Referral Hospital'];
+
+  // Helper to render required asterisk
+  const RequiredAsterisk = () => <span className="text-red-500">*</span>;
   
   // Form data state
   const [formData, setFormData] = React.useState({
@@ -52,12 +72,18 @@ const [selectedRoles, setSelectedRoles] = React.useState([]);
       [name]: value
     }));
   };
-const toggleRole = (role) => {
+
+  // MODIFIED toggleRole function
+  const toggleRole = (role) => {
     if (role === "Officer") {
-      // Selecting Officer clears other selections
-      setSelectedRoles(prev =>
-        prev.includes("Officer") ? [] : ["Officer"]
-      );
+      // If 'Officer' is being selected, show the dialog
+      if (!selectedRoles.includes("Officer")) {
+        setShowOfficerConfirmDialog(true); // Show dialog first
+      } else {
+        // If 'Officer' is being deselected, clear selection and hide dialog
+        setSelectedRoles([]);
+        setShowOfficerConfirmDialog(false);
+      }
     } else {
       // Prevent selecting Person/Guardian if Officer is already selected
       if (selectedRoles.includes("Officer")) return;
@@ -70,6 +96,7 @@ const toggleRole = (role) => {
       );
     }
   };
+
   const handleFinalNext = () => {
     setShowConfirmModal(true);
   };
@@ -98,8 +125,29 @@ const toggleRole = (role) => {
 
     // Here you would typically submit to your backend
   };
+
+  // This function should NOT trigger the main officer dialog anymore.
+  // It's for the sub-selection (Medical Assessment Officer / County Health Director)
   const handleOfficerRoleChange = (role) => {
     setSelectedOfficer(role);
+    // You could potentially add another specific dialog here if needed for THESE sub-roles,
+    // but not the main "Officer" user type confirmation.
+  };
+
+  // MODIFIED handleOfficerConfirm: User confirmed 'Officer' role
+  const handleOfficerConfirm = () => {
+    console.log("User confirmed Officer role selection.");
+    setSelectedRoles(["Officer"]); // Officially select the 'Officer' role
+    setShowOfficerConfirmDialog(false); // Close the dialog
+    setSelectedOfficer(null); // Clear sub-officer selection when main officer role is confirmed
+  };
+
+  // MODIFIED handleOfficerCancel: User cancelled 'Officer' role
+  const handleOfficerCancel = () => {
+    console.log("User cancelled Officer role selection. Reverting.");
+    setSelectedRoles([]); // Ensure 'Officer' is not selected
+    setShowOfficerConfirmDialog(false); // Close the dialog
+    setSelectedOfficer(null); // Ensure sub-officer selection is also cleared
   };
 
   return (
@@ -141,7 +189,7 @@ const toggleRole = (role) => {
             isSelected ? "border-green-600 text-green-700" : "border-gray-300"
           } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
           onClick={() => {
-            if (!isDisabled) toggleRole(user.name);
+            if (!isDisabled) toggleRole(user.name); // <--- toggleRole now handles the dialog trigger for "Officer"
           }}
         >
 <input
@@ -197,8 +245,8 @@ const toggleRole = (role) => {
             name="officerRole"
             value="Medical Assessment Officer"
             checked={selectedOfficer === 'Medical Assessment Officer'}
-            onChange={() => handleOfficerRoleChange('Medical Assessment Officer')}
-            className="form-checkbox h-4 w-4 text-green-600 rounded" // Tailwind form-checkbox for default styling, rounded for slight curve
+            onChange={() => handleOfficerRoleChange('Medical Assessment Officer')} // This now just sets selectedOfficer state
+            className="form-checkbox h-4 w-4 text-green-600 rounded" 
           />
           <span className="text-gray-800">Medical Assessment Officer</span>
         </label>
@@ -277,8 +325,8 @@ const toggleRole = (role) => {
                   </div>
                 </div>
               </div>
-
-              <div className="demographics">
+{          !selectedRoles.includes("Officer") && 
+   <div className="demographics">
                 <h1 className="text-blue-800 font-semibold">DEMOGRAPHICS</h1>
                 <div className="demographics-holder flex gap-4">
                   <select 
@@ -334,6 +382,8 @@ selectedRoles.includes("Person With Disability") && <select
                   
                 </div>
               </div>
+}
+             
             </>
           )}
 
@@ -391,8 +441,9 @@ selectedRoles.includes("Person With Disability") && <select
               </div>
               }
               
-
-              <div>
+{!selectedRoles.includes("Officer")
+&& 
+ <div>
                 <h3 className="text-blue-800 font-semibold uppercase">Occupation and Education</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input
@@ -417,11 +468,108 @@ selectedRoles.includes("Person With Disability") && <select
                   </select>
                 </div>
               </div>
+}
+             {
+              selectedRoles.includes("Officer") &&  <div className="p-6 bg-white rounded-lg shadow-md">
+      {/* REGION Section */}
+      <div className="mb-8">
+        <h2 className="text-xl font-bold text-blue-800 mb-4 uppercase">Region</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* County of Practice */}
+          <div>
+            <label htmlFor="countyOfPractice" className="sr-only">County of Practice</label>
+            <select
+              id="countyOfPractice"
+              name="countyOfPractice"
+              value={countyOfPractice}
+              onChange={(e) => setCountyOfPractice(e.target.value)}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 text-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+            >
+              <option value="" disabled>County of Practice<RequiredAsterisk /></option>
+              {counties.map(county => (
+                <option key={county} value={county}>{county}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sub-County */}
+          <div>
+            <label htmlFor="subCounty" className="sr-only">Sub-County</label>
+            <select
+              id="subCounty"
+              name="subCounty"
+              value={subCounty}
+              onChange={(e) => setSubCounty(e.target.value)}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 text-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+              disabled={!countyOfPractice} // Disable if no county is selected
+            >
+              <option value="" disabled>Sub-County</option>
+              {countyOfPractice && subCounties[countyOfPractice]?.map(sub => (
+                <option key={sub} value={sub}>{sub}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Medical Facility */}
+          <div>
+            <label htmlFor="medicalFacility" className="sr-only">Medical Facility</label>
+            <select
+              id="medicalFacility"
+              name="medicalFacility"
+              value={medicalFacility}
+              onChange={(e) => setMedicalFacility(e.target.value)}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 text-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+            >
+              <option value="" disabled>Medical Facility<RequiredAsterisk /></option>
+              {medicalFacilities.map(facility => (
+                <option key={facility} value={facility}>{facility}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* MEDICAL DETAILS Section */}
+      <div>
+        <h2 className="text-xl font-bold text-blue-800 mb-4 uppercase">Medical Details</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Medical Licence Number */}
+          <div>
+            <label htmlFor="medicalLicenceNumber" className="sr-only">Medical Licence Number</label>
+            <input
+              type="text"
+              id="medicalLicenceNumber"
+              name="medicalLicenceNumber"
+              value={medicalLicenceNumber}
+              onChange={(e) => setMedicalLicenceNumber(e.target.value)}
+              placeholder="Medical Licence Number"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 text-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+            />
+          </div>
+
+          {/* Speciality */}
+          <div>
+            <label htmlFor="speciality" className="sr-only">Speciality</label>
+            <input
+              type="text"
+              id="speciality"
+              name="speciality"
+              value={speciality}
+              onChange={(e) => setSpeciality(e.target.value)}
+              placeholder='Speciality e.g. "Orthopaedic Surgeon"'
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 text-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+            />
+          </div>
+        </div>
+      </div>
+     
+    </div>
+             }
             </div>
           )}
 
           {/* Step 3: Next of Kin */}
-          {step === 3 && (
+          {step === 3 && selectedRoles.includes("Guardian") && (
             <div className="w-full mx-auto p-4">
               <h2 className="text-blue-800 font-semibold uppercase">Emergency Contact</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -516,6 +664,14 @@ selectedRoles.includes("Person With Disability") && <select
           onClose={() => setShowConfirmModal(false)}
           onSubmit={handleModalSubmit}
           onRegistrationComplete
+        />
+      )}
+      {showOfficerConfirmDialog && (
+        <ConfirmationDialog
+          // Updated message to reflect the 'Officer' user type selection
+          message="Are you sure you want to register as an Officer? This will set your profile to Officer-specific fields."
+          onConfirm={handleOfficerConfirm}
+          onCancel={handleOfficerCancel}
         />
       )}
     </div>

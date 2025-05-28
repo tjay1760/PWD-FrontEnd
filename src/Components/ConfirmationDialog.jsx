@@ -1,22 +1,23 @@
-
 import React from 'react';
 import wheelchairIcon from "../assets/Wheelchair man.png";
-<assets />
+// Remove <assets /> line, it's not valid JSX
 
-export default function ConfirmationDialog() {
+// This component will now accept props for flexibility
+export default function ConfirmationDialog({ message, onConfirm, onCancel }) { // <--- MODIFICATION 1: ACCEPT PROPS
   const handleProceed = () => {
     console.log('Proceeding to Medical Health Assessment Officer Registration Page');
-    // Handle proceed logic here
+    onConfirm(); // <--- MODIFICATION 2: CALL onConfirm PROP
   };
 
   const handleGoBack = () => {
     console.log('Going back - data preserved');
-    // Handle go back logic here
+    onCancel(); // <--- MODIFICATION 3: CALL onCancel PROP
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white border-2 border-blue-300 rounded-lg shadow-lg max-w-md w-full p-8">
+    // <--- MODIFICATION 4: ADD OVERLAY STYLING FOR POPUP EFFECT
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+      <div className="bg-white border-2 border-blue-300 rounded-lg shadow-lg max-w-md w-full p-8 relative"> {/* relative added for potential future absolute children */}
         {/* Logo and Title */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
@@ -36,9 +37,9 @@ export default function ConfirmationDialog() {
         <div className="text-center mb-8">
           <h2 className="text-xl font-semibold text-blue-600 mb-6">Please Confirm</h2>
           
+          {/* Use the message prop here */}
           <div className="text-gray-700 space-y-2 mb-2">
-            <p>Are you sure you want to proceed to the</p>
-            <p>Medical Health Assessment Officer's Registration Page?</p>
+            <p>{message}</p> {/* <--- MODIFICATION 5: USE message PROP */}
           </div>
           
           <p className="text-red-600 font-semibold">

@@ -32,8 +32,7 @@ function App() {
           // Pass the completion handler to the Registration component
           <div>
  <Registration onRegistrationComplete={handleRegistrationComplete} />
-          <ConfirmationDialog />
-          </div>
+                    </div>
          
         )}
 
