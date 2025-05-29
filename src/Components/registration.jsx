@@ -1,3 +1,4 @@
+// Registration.jsx
 import React from "react";
 import { useState } from "react";
 
@@ -9,8 +10,7 @@ import officerIcon from "../assets/officer.svg";
 import personIcon from "../assets/person.svg";
 import ConfirmRegistrationModal from "./ConfirmRegistrationModal"; // Import the confirmation modal component
 import ConfirmationDialog from "./ConfirmationDialog";
-
-// Confirmation Modal Component
+import PasswordSetupComponent from "./passwordSetup"; // Ensure this import is correct
 
 const userType = [
   { id: 1, name: "Person With Disability", icon: personIcon },
@@ -18,21 +18,22 @@ const userType = [
   { id: 3, name: "Officer", icon: officerIcon },
 ];
 
-const Registration = ({onRegistrationComplete}) => {
+const Registration = ({ onRegistrationComplete, onLoginClick }) => {
   const [selectedRoles, setSelectedRoles] = React.useState([]);
   const [showIdTooltip, setShowIdTooltip] = React.useState(false);
   const [showDobTooltip, setShowDobTooltip] = React.useState(false);
   const [step, setStep] = React.useState(1);
   const [showConfirmModal, setShowConfirmModal] = React.useState(false);
-  const [selectedOfficer, setSelectedOfficer] = React.useState(null); // This is for 'Medical Assessment Officer' or 'County Health Director'
+  const [selectedOfficer, setSelectedOfficer] = React.useState(null);
   const [countyOfPractice, setCountyOfPractice] = useState('');
   const [subCounty, setSubCounty] = useState('');
   const [medicalFacility, setMedicalFacility] = useState('');
   const [medicalLicenceNumber, setMedicalLicenceNumber] = useState('');
   const [speciality, setSpeciality] = useState('');
-  const [showOfficerConfirmDialog, setShowOfficerConfirmDialog] = useState(false); // Controls the dialog for 'Officer' user type
+  const [showOfficerConfirmDialog, setShowOfficerConfirmDialog] = useState(false);
+  const [showPasswordSetup, setShowPasswordSetup] = useState(false); // NEW STATE
 
-   const counties = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru'];
+  const counties = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru'];
   const subCounties = {
     Nairobi: ['Langata', 'Dagoretti', 'Embakasi'],
     Mombasa: ['Kisauni', 'Nyali', 'Changamwe'],
@@ -41,10 +42,8 @@ const Registration = ({onRegistrationComplete}) => {
   };
   const medicalFacilities = ['Kenyatta National Hospital', 'Aga Khan Hospital', 'Nairobi Hospital', 'Moi Teaching and Referral Hospital'];
 
-  // Helper to render required asterisk
   const RequiredAsterisk = () => <span className="text-red-500">*</span>;
-  
-  // Form data state
+
   const [formData, setFormData] = React.useState({
     firstName: '',
     middleName: '',
@@ -62,9 +61,9 @@ const Registration = ({onRegistrationComplete}) => {
     emergencyName: '',
     emergencyRelationship: '',
     emergencyPhone: '',
+    // No password field here, it will be added in PasswordSetupComponent
   });
 
-  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -73,22 +72,16 @@ const Registration = ({onRegistrationComplete}) => {
     }));
   };
 
-  // MODIFIED toggleRole function
   const toggleRole = (role) => {
     if (role === "Officer") {
-      // If 'Officer' is being selected, show the dialog
       if (!selectedRoles.includes("Officer")) {
-        setShowOfficerConfirmDialog(true); // Show dialog first
+        setShowOfficerConfirmDialog(true);
       } else {
-        // If 'Officer' is being deselected, clear selection and hide dialog
         setSelectedRoles([]);
         setShowOfficerConfirmDialog(false);
       }
     } else {
-      // Prevent selecting Person/Guardian if Officer is already selected
       if (selectedRoles.includes("Officer")) return;
-
-      // Toggle Person or Guardian
       setSelectedRoles(prev =>
         prev.includes(role)
           ? prev.filter(r => r !== role)
@@ -97,59 +90,85 @@ const Registration = ({onRegistrationComplete}) => {
     }
   };
 
-  const handleFinalNext = () => {
-    setShowConfirmModal(true);
-  };
-
   const handleNext = () => {
-    if (step === 3) {
-      handleFinalNext();
+    // Determine the last step based on selected roles
+    const lastStepForP_G = 3; // PWD and Guardian have 3 steps
+    const lastStepForOfficer = 2; // Officer has 2 steps
+
+    let isLastStep = false;
+    if (selectedRoles.includes("Person With Disability") && step === lastStepForP_G) {
+        isLastStep = true;
+    } else if (selectedRoles.includes("Guardian") && step === lastStepForP_G) {
+        isLastStep = true;
+    } else if (selectedRoles.includes("Officer") && step === lastStepForOfficer) {
+        isLastStep = true;
+    }
+
+    if (isLastStep) {
+      setShowConfirmModal(true);
     } else {
       setStep((prev) => prev + 1);
     }
   };
 
+
   const handleBack = () => {
     if (step > 1) setStep((prev) => prev - 1);
   };
 
+  // MODIFIED: This now only prepares to show the password setup
   const handleModalSubmit = () => {
     setShowConfirmModal(false);
-    console.log("Form confirmed and submitted!", { 
-      userType: selectedRoles, 
-      ...formData 
-    });
-    if (onRegistrationComplete){
-        onRegistrationComplete(); // Call the completion handler passed from App component
-    }
-
-    // Here you would typically submit to your backend
+    setShowPasswordSetup(true); // Proceed to password setup
   };
 
-  // This function should NOT trigger the main officer dialog anymore.
-  // It's for the sub-selection (Medical Assessment Officer / County Health Director)
+  // NEW: Callback from PasswordSetupComponent after final submission
+  const handlePasswordSetupComplete = () => {
+    setShowPasswordSetup(false); // Hide password setup
+    if (onRegistrationComplete) {
+      onRegistrationComplete(); // Notify parent (e.g., navigate to login)
+    }
+  };
+
   const handleOfficerRoleChange = (role) => {
     setSelectedOfficer(role);
-    // You could potentially add another specific dialog here if needed for THESE sub-roles,
-    // but not the main "Officer" user type confirmation.
   };
 
-  // MODIFIED handleOfficerConfirm: User confirmed 'Officer' role
   const handleOfficerConfirm = () => {
-    console.log("User confirmed Officer role selection.");
-    setSelectedRoles(["Officer"]); // Officially select the 'Officer' role
-    setShowOfficerConfirmDialog(false); // Close the dialog
-    setSelectedOfficer(null); // Clear sub-officer selection when main officer role is confirmed
+    setSelectedRoles(["Officer"]);
+    setShowOfficerConfirmDialog(false);
+    setSelectedOfficer(null);
   };
 
-  // MODIFIED handleOfficerCancel: User cancelled 'Officer' role
   const handleOfficerCancel = () => {
-    console.log("User cancelled Officer role selection. Reverting.");
-    setSelectedRoles([]); // Ensure 'Officer' is not selected
-    setShowOfficerConfirmDialog(false); // Close the dialog
-    setSelectedOfficer(null); // Ensure sub-officer selection is also cleared
+    setSelectedRoles([]);
+    setShowOfficerConfirmDialog(false);
+    setSelectedOfficer(null);
   };
 
+  // If showPasswordSetup is true, render the PasswordSetupComponent
+  if (showPasswordSetup) {
+    const dataForPasswordComponent = {
+        userType: selectedRoles,
+        ...formData,
+        ...(selectedRoles.includes("Officer") && {
+            officerType: selectedOfficer,
+            countyOfPractice,
+            subCounty,
+            medicalFacility,
+            medicalLicenceNumber,
+            speciality,
+        }),
+    };
+    return (
+      <PasswordSetupComponent
+        initialFormData={dataForPasswordComponent} // Pass the collected data
+        onPasswordSetupComplete={handlePasswordSetupComplete} // Pass the callback
+      />
+    );
+  }
+
+  // Otherwise, render the registration form steps
   return (
     <div className="border flex p-10 gap-10">
       <img src={registrationImage} alt="Registration" />
@@ -166,7 +185,13 @@ const Registration = ({onRegistrationComplete}) => {
           <p>Register to the Persons With Disability (PWD) Medical System.</p>
           <p>
             Already have an account? &nbsp;
-            <span className="text-blue-500 cursor-pointer">Login?</span>
+            <span className="text-blue-500 cursor-pointer"
+            onClick={() => {
+              if (onLoginClick) {
+                onLoginClick();
+              }
+            }}
+            >Login?</span>
           </p>
         </div>
 
@@ -189,7 +214,7 @@ const Registration = ({onRegistrationComplete}) => {
             isSelected ? "border-green-600 text-green-700" : "border-gray-300"
           } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
           onClick={() => {
-            if (!isDisabled) toggleRole(user.name); // <--- toggleRole now handles the dialog trigger for "Officer"
+            if (!isDisabled) toggleRole(user.name);
           }}
         >
 <input
@@ -217,7 +242,7 @@ const Registration = ({onRegistrationComplete}) => {
               <h1 className="text-sm">Contact and Background</h1>
             </div>
             {
-              selectedRoles.includes("Person With Disability") &&
+              (selectedRoles.includes("Person With Disability") || selectedRoles.includes("Guardian")) &&
  <div className={`flex gap-2 border rounded-full p-2 ${step >= 3 ? 'bg-green-50 border-green-300' : ''}`}>
               <div className={`number rounded-full h-6 w-6 flex items-center justify-center border text-sm ${step >= 3 ? 'bg-green-600 text-white border-green-600' : ''}`}>3</div>
               <h1 className="text-sm">Next of Kin</h1>
@@ -245,7 +270,7 @@ const Registration = ({onRegistrationComplete}) => {
             name="officerRole"
             value="Medical Assessment Officer"
             checked={selectedOfficer === 'Medical Assessment Officer'}
-            onChange={() => handleOfficerRoleChange('Medical Assessment Officer')} // This now just sets selectedOfficer state
+            onChange={() => handleOfficerRoleChange('Medical Assessment Officer')}
             className="form-checkbox h-4 w-4 text-green-600 rounded" 
           />
           <span className="text-gray-800">Medical Assessment Officer</span>
@@ -264,9 +289,6 @@ const Registration = ({onRegistrationComplete}) => {
           <span className="text-gray-800">County Health Director</span>
         </label>
       </div>
-
-     
-     
     </div>
             }
               <div className="names">
@@ -325,12 +347,12 @@ const Registration = ({onRegistrationComplete}) => {
                   </div>
                 </div>
               </div>
-{          !selectedRoles.includes("Officer") && 
+{          !selectedRoles.includes("Officer") &&
    <div className="demographics">
                 <h1 className="text-blue-800 font-semibold">DEMOGRAPHICS</h1>
                 <div className="demographics-holder flex gap-4">
-                  <select 
-                    className="border rounded mb-2 p-2 w-full" 
+                  <select
+                    className="border rounded mb-2 p-2 w-full"
                     name="gender"
                     value={formData.gender}
                     onChange={handleInputChange}
@@ -362,7 +384,7 @@ const Registration = ({onRegistrationComplete}) => {
                     )}
                   </div>
                   {
-selectedRoles.includes("Person With Disability") && <select 
+(selectedRoles.includes("Person With Disability") || selectedRoles.includes("Guardian")) && <select
                     className="maritual-status border rounded mb-2 p-2 w-full"
                     name="maritalStatus"
                     value={formData.maritalStatus}
@@ -379,11 +401,9 @@ selectedRoles.includes("Person With Disability") && <select
                     <option value="Other">OTHER</option>
                   </select>
                   }
-                  
                 </div>
               </div>
 }
-             
             </>
           )}
 
@@ -412,37 +432,38 @@ selectedRoles.includes("Person With Disability") && <select
                 </div>
               </div>
               {
-                selectedRoles.includes("Person With Disability") &&<div>
+                (selectedRoles.includes("Person With Disability") || selectedRoles.includes("Guardian")) && <div>
                 <h3 className="text-blue-800 font-semibold uppercase">Location</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <select 
+                  <select
                     className="w-full border border-gray-300 rounded px-3 py-2"
                     name="county"
                     value={formData.county}
                     onChange={handleInputChange}
                   >
                     <option value="">Select County</option>
-                    <option value="Nairobi">Nairobi</option>
-                    <option value="Mombasa">Mombasa</option>
-                    <option value="Kisumu">Kisumu</option>
+                    {counties.map(county => (
+                      <option key={county} value={county}>{county}</option>
+                    ))}
                   </select>
-                  <select 
+                  <select
                     className="w-full border border-gray-300 rounded px-3 py-2"
                     name="subCounty"
                     value={formData.subCounty}
                     onChange={handleInputChange}
+                    disabled={!formData.county} // Disable if no county is selected
                   >
                     <option value="">Select Sub County</option>
-                    <option value="Westlands">Westlands</option>
-                    <option value="Kasarani">Kasarani</option>
-                    <option value="Langata">Langata</option>
+                    {formData.county && subCounties[formData.county]?.map(sub => (
+                      <option key={sub} value={sub}>{sub}</option>
+                    ))}
                   </select>
                 </div>
               </div>
               }
               
 {!selectedRoles.includes("Officer")
-&& 
+&&
  <div>
                 <h3 className="text-blue-800 font-semibold uppercase">Occupation and Education</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -454,7 +475,7 @@ selectedRoles.includes("Person With Disability") && <select
                     placeholder='e.g. "Teacher", "Farmer"'
                     className="w-full border border-gray-300 rounded px-3 py-2"
                   />
-                  <select 
+                  <select
                     className="w-full border border-gray-300 rounded px-3 py-2"
                     name="education"
                     value={formData.education}
@@ -562,14 +583,13 @@ selectedRoles.includes("Person With Disability") && <select
           </div>
         </div>
       </div>
-     
     </div>
              }
             </div>
           )}
 
           {/* Step 3: Next of Kin */}
-          {step === 3 && selectedRoles.includes("Guardian") && (
+          {step === 3 && (selectedRoles.includes("Person With Disability") || selectedRoles.includes("Guardian")) && (
             <div className="w-full mx-auto p-4">
               <h2 className="text-blue-800 font-semibold uppercase">Emergency Contact</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -581,7 +601,7 @@ selectedRoles.includes("Person With Disability") && <select
                   placeholder="Full Name"
                   className="border border-gray-300 rounded-md px-4 py-2 w-full"
                 />
-                <select 
+                <select
                   className="border border-gray-300 rounded-md px-4 py-2 w-full"
                   name="emergencyRelationship"
                   value={formData.emergencyRelationship}
@@ -645,7 +665,7 @@ selectedRoles.includes("Person With Disability") && <select
                 overflow-hidden transition-colors duration-300 ease-in-out
                 hover:bg-green-600 hover:text-white cursor-pointer`}
             >
-              {step === 3 ? "Finish" : "Next"} 
+              {((selectedRoles.includes("Person With Disability") && step === 3) || (selectedRoles.includes("Guardian") && step === 3) || (selectedRoles.includes("Officer") && step === 2)) ? "Finish" : "Next"}
               <span className="transition-transform duration-300 ease-in-out group-hover:translate-x-1">
                 →
               </span>
@@ -659,16 +679,23 @@ selectedRoles.includes("Person With Disability") && <select
         <ConfirmRegistrationModal
           data={{
             userType: selectedRoles,
-            ...formData
+            ...formData,
+            ...(selectedRoles.includes("Officer") && {
+              officerType: selectedOfficer,
+              countyOfPractice,
+              subCounty,
+              medicalFacility,
+              medicalLicenceNumber,
+              speciality,
+            }),
           }}
           onClose={() => setShowConfirmModal(false)}
           onSubmit={handleModalSubmit}
-          onRegistrationComplete
+          // No onRegistrationComplete here as it's handled by PasswordSetupComponent now
         />
       )}
       {showOfficerConfirmDialog && (
         <ConfirmationDialog
-          // Updated message to reflect the 'Officer' user type selection
           message="Are you sure you want to register as an Officer? This will set your profile to Officer-specific fields."
           onConfirm={handleOfficerConfirm}
           onCancel={handleOfficerCancel}

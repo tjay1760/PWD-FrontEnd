@@ -6,16 +6,22 @@ import SetPasswordOTP from './Components/Onetimepin'
 import PasswordSetupComponent from './Components/passwordSetup'
 import ConfirmationDialog from './Components/ConfirmationDialog'
 import UserDashboard from './Components/Dashboard'
+import LoginForm from './Components/LoginForm'
 
 function App() {
 
   const STEPS = {
+    LOGIN: 'login',
     REGISTRATION: 'registration',
     PASSWORD_SETUP: 'password_setup',
     OTP_SETUP: 'otp_setup',
     COMPLETED: 'completed', // Optional: for when all steps are done
   };
-  const [currentStep, setCurrentStep] = useState(STEPS.REGISTRATION);
+  const [currentStep, setCurrentStep] = useState(STEPS.LOGIN);
+
+  const handleRegisterClick = () => {
+    setCurrentStep(STEPS.REGISTRATION);
+  };
   const handleRegistrationComplete = () => {
     setCurrentStep(STEPS.PASSWORD_SETUP);
   }
@@ -25,13 +31,19 @@ function App() {
   const handleOTPSetupComplete = () => {
     setCurrentStep(STEPS.COMPLETED);
   }
+  const handleLoginClick = () => {
+    setCurrentStep(STEPS.LOGIN);
+  };
 
   return (
     <>
+        {currentStep === STEPS.LOGIN && (<LoginForm onRegisterClick={handleRegisterClick} />)}
 {currentStep === STEPS.REGISTRATION && (
           // Pass the completion handler to the Registration component
           <div>
- <Registration onRegistrationComplete={handleRegistrationComplete} />
+ <Registration onRegistrationComplete={handleRegistrationComplete}
+ onLoginClick={handleLoginClick}
+ />
                     </div>
          
         )}

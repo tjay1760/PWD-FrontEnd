@@ -4,7 +4,7 @@ import React from 'react';
 import wheelchairIcon from "../assets/Wheelchair man.png"
 import formImage from '../assets/Form Image.png'; // Assuming you have this image
 
-const LoginForm = () => {
+const LoginForm = ( {onRegisterClick }) => {
   return (
     <div className="min-h-screen flex">
       {/* Left section with background image and overlay */}
@@ -43,7 +43,16 @@ const LoginForm = () => {
             <p className="text-gray-700">Login to the Persons With Disability (PWD) Medical System.</p>
             <p className="text-gray-700">
               Don't have an account?{' '}
-              <a href="#" className="text-blue-500 hover:underline">
+              <a href="#" className="text-blue-500 hover:underline"
+                onClick={
+                  (e) => {
+                    e.preventDefault();
+                    if (onRegisterClick) {
+                      onRegisterClick(); // Call the parent function to handle registration
+                    }
+                  }
+                }
+              >
                 Register
               </a>
             </p>
