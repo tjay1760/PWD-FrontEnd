@@ -18,13 +18,16 @@ function App() {
     COMPLETED: 'completed', // Optional: for when all steps are done
   };
   const [currentStep, setCurrentStep] = useState(STEPS.LOGIN);
+   const [registrationFormData, setRegistrationFormData] = useState(null);
 
   const handleRegisterClick = () => {
     setCurrentStep(STEPS.REGISTRATION);
   };
-  const handleRegistrationComplete = () => {
-    setCurrentStep(STEPS.PASSWORD_SETUP);
-  }
+ const handleRegistrationComplete = (data) => {
+  setRegistrationFormData(data);
+  setCurrentStep(STEPS.PASSWORD_SETUP);
+};
+
   const handlePasswordSetupComplete = () => {
     setCurrentStep(STEPS.OTP_SETUP);
   }
@@ -41,16 +44,18 @@ function App() {
 {currentStep === STEPS.REGISTRATION && (
           // Pass the completion handler to the Registration component
           <div>
- <Registration onRegistrationComplete={handleRegistrationComplete}
- onLoginClick={handleLoginClick}
- />
+ <Registration 
+  onRegistrationComplete={handleRegistrationComplete}
+  onLoginClick={handleLoginClick}
+/>
+
                     </div>
          
         )}
 
         {currentStep === STEPS.PASSWORD_SETUP && (
           // Pass the completion handler to the PasswordSetupComponent
-          <PasswordSetupComponent onPasswordSetupComplete={handlePasswordSetupComplete} />
+          <PasswordSetupComponent onPasswordSetupComplete={handlePasswordSetupComplete} formData={registrationFormData}/>
         )}
         {currentStep === STEPS.OTP_SETUP && (
           // Pass the completion handler to the SetPasswordOTP component
