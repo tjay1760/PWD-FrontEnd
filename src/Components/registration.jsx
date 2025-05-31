@@ -9,7 +9,8 @@ import officerIcon from "../assets/officer.svg";
 import personIcon from "../assets/person.svg";
 import ConfirmRegistrationModal from "./ConfirmRegistrationModal"; // Import the confirmation modal component
 import ConfirmationDialog from "./ConfirmationDialog";
-import PasswordSetupComponent from "./passwordSetup";
+import Notification from "./ValidationNotification";
+
 
 // Confirmation Modal Component
 
@@ -32,6 +33,7 @@ const Registration = ({onRegistrationComplete,onLoginClick}) => {
   const [medicalLicenceNumber, setMedicalLicenceNumber] = useState('');
   const [speciality, setSpeciality] = useState('');
   const [showOfficerConfirmDialog, setShowOfficerConfirmDialog] = useState(false); // Controls the dialog for 'Officer' user type
+  const [notification, setNotification] = useState({ message: '', type: '' });
 
    const counties = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru'];
   const subCounties = {
@@ -45,6 +47,55 @@ const Registration = ({onRegistrationComplete,onLoginClick}) => {
   // Helper to render required asterisk
   const RequiredAsterisk = () => <span className="text-red-500">*</span>;
   
+  const ValidateCurrentStep =() => {
+    setNotification({ message: '', type: '' }); // Reset notification
+    if (step === 1) {
+       if (selectedRoles.length === 0) {
+        setNotification({ message: 'Please select at least one user type.', type: 'error' });
+        return false;
+      }
+       if (selectedRoles.includes("Officer") && !selectedOfficer) {
+        setNotification({ message: 'Please select if you are a Medical Assessment Officer or County Health Director.', type: 'error' });
+        return false;
+      }
+        if ((selectedRoles.includes("Guardian") || selectedRoles.includes("Person With Disability")) && (!formData.dateOfBirth)) {
+        setNotification({ message: 'Gender and Date of Birth are required.', type: 'error' });
+        return false;
+      }
+      // Validate Bio Data
+      if (!formData.firstName || !formData.lastName || !formData.idNumber) {
+        setNotification({ message: 'Please fill in all required fields in Bio Data.', type: 'error' });
+        return false;
+      }
+    } else if (step === 2) {
+      // Validate Contact and Background
+      if (!formData.phoneNumber) {
+        setNotification({ message: 'Please enter a valid phone number.', type: 'error' });
+        return false;
+      }
+      if (selectedRoles.includes("Person With Disability") && !formData.county) {
+        setNotification({ message: 'Please select your county.', type: 'error' });
+        return false;
+      }
+      if (selectedRoles.includes("Person With Disability") && (!formData.county || !formData.subCounty)) {
+        setNotification({ message: 'County and Sub-County are required for PWD.', type: 'error' });
+        return false;
+      }
+      if (selectedRoles.includes("Officer")) {
+          if (!countyOfPractice || !subCounty || !medicalFacility || !medicalLicenceNumber || !speciality) {
+              setNotification({ message: 'All officer-specific fields (Region, Medical Details) are required.', type: 'error' });
+              return false;
+          }
+      }
+    } else if (step === 3 && selectedRoles.includes("Guardian") || selectedRoles.includes("Person With Disability")) {
+      // Validate Next of Kin
+      if (!formData.emergencyName || !formData.emergencyPhone) {
+        setNotification({ message: 'Please fill in all required fields for Next of Kin.', type: 'error' });
+        return false;
+      }
+    }
+    return true; // All validations passed
+  }
   // Form data state
   const [formData, setFormData] = React.useState({
     firstName: '',
@@ -98,17 +149,20 @@ const Registration = ({onRegistrationComplete,onLoginClick}) => {
     }
   };
 
-  const handleFinalNext = () => {
-    setShowConfirmModal(true);
-  };
+const handleFinalNext = () => {
+  setShowConfirmModal(true);
+};
 
-  const handleNext = () => {
+// Properly define handleNext as a function
+const handleNext = () => {
+  if (ValidateCurrentStep()) {
     if (step === 3) {
       handleFinalNext();
     } else {
       setStep((prev) => prev + 1);
     }
-  };
+  }
+};
 
   const handleBack = () => {
     if (step > 1) setStep((prev) => prev - 1);
@@ -160,6 +214,11 @@ const Registration = ({onRegistrationComplete,onLoginClick}) => {
 
   return (
     <div className="border flex p-10 gap-10">
+      <Notification
+        message={notification.message}
+        type={notification.type}
+        onClose={() => setNotification({ message: '', type: '' })}
+      />
       <img src={registrationImage} alt="Registration" />
       <div className="registration-details flex flex-col gap-10">
         <div className="heading flex justify-center items-center gap-4">
