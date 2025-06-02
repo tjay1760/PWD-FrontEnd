@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 import wheelchairIcon from "../assets/Wheelchair man.png";
 import formImage from '../assets/Form Image.png';
-const REACT_APP_API_BASE_URL= "http://localhost:5000"
-const LoginForm = ({ onRegisterClick }) => {
+
+const REACT_APP_API_BASE_URL= "http://localhost:5000" // Keep this for clarity or switch to process.env
+
+// ACCEPT onLoginSuccess PROP HERE
+const LoginForm = ({ onRegisterClick, onLoginSuccess }) => { // <--- ADDED onLoginSuccess
   const [emailOrId, setEmailOrId] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Function to handle login submission
   const handleLogin = async (e) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
 
     setLoading(true);
-    setError(null); // Clear previous errors
+    setError(null);
 
     try {
       const response = await fetch(`${REACT_APP_API_BASE_URL}/api/auth/login`, {
@@ -21,7 +23,7 @@ const LoginForm = ({ onRegisterClick }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email: emailOrId, password }), // 'identifier' could be email or national ID based on your backend
+        body: JSON.stringify({ email: emailOrId, password }), // Ensure this matches your backend
       });
 
       console.log({ identifier: emailOrId, password })
@@ -29,18 +31,19 @@ const LoginForm = ({ onRegisterClick }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // Login successful
         console.log('Login successful:', data);
-        // Store tokens (assuming your API returns access_token and refresh_token)
         localStorage.setItem('accessToken', data.access_token);
         localStorage.setItem('refreshToken', data.refresh_token);
-        // You might want to redirect the user to a dashboard or home page
-        // Example: window.location.href = '/dashboard'; or use react-router-dom history.push
-        alert('Login Successful!'); // For demonstration
-        // In a real app, you'd likely redirect:
-        // history.push('/dashboard'); // if using react-router-dom
+
+        // *** CRUCIAL CHANGE: CALL onLoginSuccess ***
+        if (onLoginSuccess) {
+          // Assuming your backend returns user data directly in the response
+          // or within a 'user' key (e.g., data.user). Adjust as per your API.
+          const userDetails = data.user || data; 
+          onLoginSuccess(userDetails); // Pass the user data to the parent
+        }
+        // No need for alert('Login Successful!') here as the dashboard will render
       } else {
-        // Login failed
         setError(data.message || 'Login failed. Please check your credentials.');
         console.error('Login error:', data);
       }
@@ -54,7 +57,7 @@ const LoginForm = ({ onRegisterClick }) => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left section with background image and overlay */}
+      {/* ... (rest of your LoginForm JSX - no changes needed here) ... */}
       <div className="relative w-1/2 bg-gray-200 flex items-center justify-center p-8">
         <div
           className="absolute inset-0 bg-cover bg-center"
@@ -64,10 +67,8 @@ const LoginForm = ({ onRegisterClick }) => {
         </div>
       </div>
 
-      {/* Right section with the login form */}
       <div className="w-1/2 flex items-center justify-center bg-white p-8">
         <div className="max-w-md w-full">
-          {/* Logo and Title */}
           <div className="text-center mb-10">
             <div className="flex items-center justify-center mb-4">
               <img src={wheelchairIcon} alt="Wheelchair Icon" className="h-12 w-12 mr-2" />
@@ -78,7 +79,6 @@ const LoginForm = ({ onRegisterClick }) => {
             </div>
           </div>
 
-          {/* Call to action / Register link */}
           <div className="text-center text-sm mb-8">
             <p className="text-gray-700">Login to the Persons With Disability (PWD) Medical System.</p>
             <p className="text-gray-700">
@@ -98,11 +98,9 @@ const LoginForm = ({ onRegisterClick }) => {
             </p>
           </div>
 
-          {/* Divider */}
           <div className="w-full h-px bg-gray-300 my-8"></div>
 
-          {/* Login Form */}
-          <form className="space-y-6" onSubmit={handleLogin}> {/* Add onSubmit handler here */}
+          <form className="space-y-6" onSubmit={handleLogin}>
             <div>
               <label htmlFor="emailOrId" className="block text-xs font-semibold text-gray-600 uppercase mb-2">
                 Enter your email or national ID and password
