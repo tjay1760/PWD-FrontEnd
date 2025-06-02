@@ -1,101 +1,95 @@
-import React from 'react';
+// Components/Dashboard/Dashboard.jsx
+import React, { useState } from 'react';
+import { 
+  Users, 
+  Home,
+  ClipboardList,
+  File
+} from 'lucide-react'; // Only import icons used in this component
 
-const UserDashboard = ({ userData }) => {
-  // If no data is provided, you might want to show a message or a loading spinner
-  if (!userData) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gray-100">
-        <p className="text-lg text-gray-600">No user data available twwwwwo display.</p>
+// Import your new content components
+import DashboardContent from './DashboardContent';
+import AssessmentsContent from './AssessmentsContent ';
+import DocumentsContent from './DocumentsContent';
+
+const UserDashboard = ({ userData }) => { // Accept userData prop
+  const [currentPage, setCurrentPage] = useState('dashboard');
+  const [sidebarHovered, setSidebarHovered] = useState(false);
+
+  const renderSidebar = () => (
+    <div 
+      className={`fixed left-0 top-0 h-full bg-white shadow-lg transition-all duration-300 z-50 ${
+        sidebarHovered ? 'w-64' : 'w-16'
+      }`}
+      onMouseEnter={() => setSidebarHovered(true)}
+      onMouseLeave={() => setSidebarHovered(false)}
+    >
+      <div className="p-4">
+        <div className="flex items-center mb-8">
+          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+            <Users className="w-5 h-5 text-white" />
+          </div>
+          {sidebarHovered && (
+            <div className="ml-3">
+              <div className="text-sm font-semibold text-gray-800">Persons With Disability</div>
+              <div className="text-xs text-blue-600">Medical System</div>
+            </div>
+          )}
+        </div>
+        
+        <nav className="space-y-2">
+          <button
+            onClick={() => setCurrentPage('dashboard')}
+            className={`w-full flex items-center p-3 rounded-lg transition-colors ${
+              currentPage === 'dashboard' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <Home className="w-5 h-5" />
+            {sidebarHovered && <span className="ml-3">Dashboard</span>}
+          </button>
+          
+          <button
+            onClick={() => setCurrentPage('assessments')}
+            className={`w-full flex items-center p-3 rounded-lg transition-colors ${
+              currentPage === 'assessments' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <ClipboardList className="w-5 h-5" />
+            {sidebarHovered && <span className="ml-3">Assessments</span>}
+          </button>
+          
+          <button
+            onClick={() => setCurrentPage('documents')}
+            className={`w-full flex items-center p-3 rounded-lg transition-colors ${
+              currentPage === 'documents' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <File className="w-5 h-5" />
+            {sidebarHovered && <span className="ml-3">Documents</span>}
+          </button>
+        </nav>
       </div>
-    );
-  }
+    </div>
+  );
 
-  const {
-    userType,
-    firstName,
-    middleName,
-    lastName,
-    idNumber,
-    gender,
-    dateOfBirth,
-    maritalStatus,
-    phoneNumber,
-    email,
-    county,
-    subCounty,
-    occupation,
-    education,
-    emergencyName,
-    emergencyRelationship,
-    emergencyPhone,
-  } = userData;
-
-  const dataSections = [
-    {
-      title: 'User Type',
-      fields: [
-        { label: 'Type', value: userType },
-      ],
-    },
-    {
-      title: 'Bio Data',
-      fields: [
-        { label: 'Full Name', value: `${firstName || ''} ${middleName || ''} ${lastName || ''}`.trim() || 'Not provided' },
-        { label: 'ID/Passport No.', value: idNumber },
-        { label: 'Gender', value: gender },
-        { label: 'Date of Birth', value: dateOfBirth },
-        { label: 'Marital Status', value: maritalStatus },
-      ],
-    },
-    {
-      title: 'Contact and Background',
-      fields: [
-        { label: 'Mobile Number', value: phoneNumber },
-        { label: 'Email Address', value: email },
-        { label: 'County', value: county },
-        { label: 'Sub County', value: subCounty },
-        { label: 'Occupation', value: occupation },
-        { label: 'Education', value: education },
-      ],
-    },
-    {
-      title: 'Emergency Contact',
-      fields: [
-        { label: 'Name', value: emergencyName },
-        { label: 'Relationship', value: emergencyRelationship },
-        { label: 'Phone', value: emergencyPhone },
-      ],
-    },
-  ];
+  const renderContent = () => {
+    switch(currentPage) {
+      case 'dashboard':
+        return <DashboardContent userData={userData} />; // Pass userData to DashboardContent
+      case 'assessments':
+        return <AssessmentsContent />;
+      case 'documents':
+        return <DocumentsContent />;
+      default:
+        return <DashboardContent userData={userData} />;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8 flex justify-center">
-      <div className="bg-white rounded-xl p-8 shadow-lg w-full max-w-4xl font-sans">
-        <h1 className="text-center text-3xl font-bold text-blue-900 mb-8 border-b pb-4">
-          User Profile Dashboard
-        </h1>
-
-        <div className="space-y-6">
-          {dataSections.map((section, index) => (
-            <div key={index} className="border-b pb-6 last:border-b-0 last:pb-0">
-              <h2 className="text-xl font-semibold text-green-800 mb-4">{section.title}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8 text-gray-700">
-                {section.fields.map((field, fieldIndex) => (
-                  <div key={fieldIndex}>
-                    <p>
-                      <strong className="text-gray-900">{field.label}:</strong>{' '}
-                      {field.value || 'Not provided'}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>Data last updated: {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}</p>
-        </div>
+    <div className="min-h-screen bg-gray-50 flex">
+      {renderSidebar()}
+      <div className={`flex-1 transition-all duration-300 ${sidebarHovered ? 'ml-64' : 'ml-16'}`}>
+        {renderContent()}
       </div>
     </div>
   );
