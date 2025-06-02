@@ -5,7 +5,7 @@ const UserDashboard = ({ userData }) => {
   if (!userData) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
-        <p className="text-lg text-gray-600">No user data available to display.</p>
+        <p className="text-lg text-gray-600">No user data available twwwwwo display.</p>
       </div>
     );
   }

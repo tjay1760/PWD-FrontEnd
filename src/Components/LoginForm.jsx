@@ -1,27 +1,67 @@
-import React from 'react';
+import React, { useState } from 'react';
+import wheelchairIcon from "../assets/Wheelchair man.png";
+import formImage from '../assets/Form Image.png';
+const REACT_APP_API_BASE_URL= "http://localhost:5000"
+const LoginForm = ({ onRegisterClick }) => {
+  const [emailOrId, setEmailOrId] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-// You would replace these with your actual image paths
-import wheelchairIcon from "../assets/Wheelchair man.png"
-import formImage from '../assets/Form Image.png'; // Assuming you have this image
+  // Function to handle login submission
+  const handleLogin = async (e) => {
+    e.preventDefault(); // Prevent default form submission
 
-const LoginForm = ( {onRegisterClick }) => {
+    setLoading(true);
+    setError(null); // Clear previous errors
+
+    try {
+      const response = await fetch(`${REACT_APP_API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: emailOrId, password }), // 'identifier' could be email or national ID based on your backend
+      });
+
+      console.log({ identifier: emailOrId, password })
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Login successful
+        console.log('Login successful:', data);
+        // Store tokens (assuming your API returns access_token and refresh_token)
+        localStorage.setItem('accessToken', data.access_token);
+        localStorage.setItem('refreshToken', data.refresh_token);
+        // You might want to redirect the user to a dashboard or home page
+        // Example: window.location.href = '/dashboard'; or use react-router-dom history.push
+        alert('Login Successful!'); // For demonstration
+        // In a real app, you'd likely redirect:
+        // history.push('/dashboard'); // if using react-router-dom
+      } else {
+        // Login failed
+        setError(data.message || 'Login failed. Please check your credentials.');
+        console.error('Login error:', data);
+      }
+    } catch (err) {
+      console.error('Network or server error:', err);
+      setError('An error occurred. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex">
       {/* Left section with background image and overlay */}
       <div className="relative w-1/2 bg-gray-200 flex items-center justify-center p-8">
-        {/* The provided image for the left side is a complex graphic.
-            For a placeholder, we'll use a div that simulates its presence.
-            You'll replace this with your actual image component or div with background image. */}
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${formImage})` }} // Use your form image here
+          style={{ backgroundImage: `url(${formImage})` }}
         >
-          {/* This image contains various graphical elements and people,
-              appearing to be related to a medical or support system.
-              For this placeholder, we'll just show the full image. */}
           <img src={formImage} alt="Decorative background" className="w-full h-full object-cover" />
         </div>
-        {/* Content over the image, if any, goes here */}
       </div>
 
       {/* Right section with the login form */}
@@ -48,7 +88,7 @@ const LoginForm = ( {onRegisterClick }) => {
                   (e) => {
                     e.preventDefault();
                     if (onRegisterClick) {
-                      onRegisterClick(); // Call the parent function to handle registration
+                      onRegisterClick();
                     }
                   }
                 }
@@ -62,7 +102,7 @@ const LoginForm = ( {onRegisterClick }) => {
           <div className="w-full h-px bg-gray-300 my-8"></div>
 
           {/* Login Form */}
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleLogin}> {/* Add onSubmit handler here */}
             <div>
               <label htmlFor="emailOrId" className="block text-xs font-semibold text-gray-600 uppercase mb-2">
                 Enter your email or national ID and password
@@ -73,6 +113,8 @@ const LoginForm = ( {onRegisterClick }) => {
                 name="emailOrId"
                 placeholder="Type your Email/National ID*"
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 text-sm"
+                value={emailOrId}
+                onChange={(e) => setEmailOrId(e.target.value)}
                 required
               />
             </div>
@@ -83,6 +125,8 @@ const LoginForm = ( {onRegisterClick }) => {
                 name="password"
                 placeholder="Type your Password*"
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 text-sm"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
@@ -91,11 +135,18 @@ const LoginForm = ( {onRegisterClick }) => {
                 Forgot Password? Reset
               </a>
             </div>
+
+            {error && (
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            )}
+
             <button
               type="submit"
-              className="w-full bg-green-100 hover:bg-green-200 text-green-800 font-semibold py-3 px-6 rounded-full border border-green-300 transition-colors duration-200 uppercase tracking-wide"
+              className={`w-full bg-green-100 text-green-800 font-semibold py-3 px-6 rounded-full border border-green-300 transition-colors duration-200 uppercase tracking-wide
+                ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-200'}`}
+              disabled={loading}
             >
-              Login
+              {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
         </div>
