@@ -19,6 +19,7 @@ import Tickheart from "../../assets/vuesax-linear-heart-tick.svg"
 import HeartSearch from "../../assets/vuesax-linear-heart-search.svg"
 import LinearLike from "../../assets/vuesax-linear-like.svg"
 import LinearLovely from "../../assets/vuesax-linear-lovely.svg"
+import AssessmentsTable from './AssesmentsTable';
 const DashboardContent = ({ userData }) => { 
   const patientQueue = [
     { id: 1, name: "Name Surname", type: "Specialized Re-Assessment", status: "Pending", date: "Wednesday, 21 May 2025", avatar: "👨‍⚕️" },
@@ -166,44 +167,8 @@ console.log("User Data dashboard:", userData); // For debugging purposes
       {/* Bottom Section */}
       <div className="grid grid-cols-2 gap-6">
         {/* Patients Queue */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6 border-b">
-            <h2 className="text-lg font-semibold text-gray-800">Patients' Queue</h2>
-            <p className="text-sm text-gray-600">Below is a list of all booked appointments</p>
-            <div className="mt-4">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search by Name, ID No. or Email..."
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm"
-                />
-              </div>
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {patientQueue.map((patient) => (
-                <div key={patient.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full mr-3 flex items-center justify-center text-sm">
-                      {patient.avatar}
-                    </div>
-                    <div>
-                      <div className="font-medium text-sm">{patient.name}</div>
-                      <div className="text-xs text-gray-600">{patient.type}</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">{patient.status}</div>
-                    <div className="text-xs text-gray-500 mt-1">{patient.date}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
+        <AssessmentsTable/>
+       
         {/* Calendar */}
         <div className="bg-white rounded-lg shadow-sm">
           <div className="p-6 border-b">
