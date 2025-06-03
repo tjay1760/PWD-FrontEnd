@@ -1,6 +1,7 @@
 import React from 'react';
-import { Bell, RefreshCcw, Accessibility } from 'lucide-react';
-import WheeelChairIcon from "../../assets/Wheelchair man.png"; // Assuming this path is correct
+import { Bell, RefreshCcw} from 'lucide-react';
+import WheeelChairIcon from "../../assets/Wheelchair man.png"; 
+import HelpIcon from "../../assets/help.svg"
 
 // Import Material-UI components
 import Avatar from '@mui/material/Avatar';
@@ -64,7 +65,7 @@ export default function Navbar({ userName = "John Doe" }) { // Add userName prop
       <div className="flex items-center space-x-4">
         <span className="text-sm font-medium text-gray-700 hidden sm:block">PWD</span>
         <RefreshCcw className="w-5 h-5 cursor-pointer text-gray-600" />
-        <Accessibility className="w-5 h-5 cursor-pointer text-gray-600" />
+        <img src={HelpIcon} alt="Help" className="w-5 h-5 cursor-pointer" />
         <Bell className="w-5 h-5 cursor-pointer text-gray-600" />
 
         {/* Avatar Dropdown */}

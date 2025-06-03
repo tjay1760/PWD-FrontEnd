@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <g id="vuesax_linear_calendar-2" data-name="vuesax/linear/calendar-2" transform="translate(-172 -252)">
+    <g id="calendar-2" transform="translate(172 252)">
+      <path id="Vector" d="M0,0V4.01" transform="translate(10.667 2.673)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      <path id="Vector-2" data-name="Vector" d="M0,0V4.01" transform="translate(21.333 2.673)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      <path id="Vector-3" data-name="Vector" d="M0,0H22.644" transform="translate(4.678 12.12)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      <path id="Vector-4" data-name="Vector" d="M23.981,6.662V17.987c0,4-2,6.662-6.661,6.662H6.661C2,24.649,0,21.984,0,17.987V6.662C0,2.665,2,0,6.661,0H17.319C21.982,0,23.981,2.665,23.981,6.662Z" transform="translate(4.01 4.678)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      <path id="Vector-5" data-name="Vector" d="M0,0H32V32H0Z" fill="none" opacity="0"/>
+      <path id="Vector-6" data-name="Vector" d="M.495.5H.507" transform="translate(15.499 17.767)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      <path id="Vector-7" data-name="Vector" d="M.495.5H.507" transform="translate(10.565 17.767)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      <path id="Vector-8" data-name="Vector" d="M.495.5H.507" transform="translate(10.565 21.767)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+    </g>
+  </g>
+</svg>

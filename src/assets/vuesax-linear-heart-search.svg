@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <g id="vuesax_linear_heart-search" data-name="vuesax/linear/heart-search" opacity="0.25">
+    <g id="heart-search" transform="translate(0 0)">
+      <g id="Group" transform="translate(5.331 8.263)">
+        <path id="Vector" d="M51.978,23.737a29.3,29.3,0,0,0,1.36-8.828A14.865,14.865,0,0,0,38.51,0,14.709,14.709,0,0,0,26.669,5.974,14.793,14.793,0,0,0,0,14.909C0,33.578,17.281,44.593,25.015,47.26a5.146,5.146,0,0,0,1.653.24" fill="none" stroke="#4caf50" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+      </g>
+      <g id="Group-2" data-name="Group" transform="translate(38.784 38.944)">
+        <path id="Vector-2" data-name="Vector" d="M17.06,8.53A8.53,8.53,0,1,1,8.53,0,8.53,8.53,0,0,1,17.06,8.53Z" fill="none" stroke="#4caf50" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+        <path id="Vector-3" data-name="Vector" d="M2.666,2.666,0,0" transform="translate(15.993 15.993)" fill="none" stroke="#4caf50" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+      </g>
+      <path id="Vector-4" data-name="Vector" d="M0,0H64V64H0Z" transform="translate(64 64) rotate(180)" fill="none" opacity="0"/>
+    </g>
+  </g>
+</svg>
