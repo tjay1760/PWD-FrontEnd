@@ -20,6 +20,7 @@ import HeartSearch from "../../assets/vuesax-linear-heart-search.svg"
 import LinearLike from "../../assets/vuesax-linear-like.svg"
 import LinearLovely from "../../assets/vuesax-linear-lovely.svg"
 import AssessmentsTable from './AssesmentsTable';
+import CalendarView from './CalendarView';
 const DashboardContent = ({ userData }) => { 
   const patientQueue = [
     { id: 1, name: "Name Surname", type: "Specialized Re-Assessment", status: "Pending", date: "Wednesday, 21 May 2025", avatar: "👨‍⚕️" },
@@ -168,7 +169,7 @@ console.log("User Data dashboard:", userData); // For debugging purposes
       <div className="grid grid-cols-2 gap-6">
         {/* Patients Queue */}
         <AssessmentsTable/>
-       
+       <CalendarView/>
         {/* Calendar */}
         <div className="bg-white rounded-lg shadow-sm">
           <div className="p-6 border-b">
