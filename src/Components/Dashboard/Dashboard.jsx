@@ -10,6 +10,7 @@ import toast from 'react-hot-toast'; // Import toast
 
 import authService from '../authService'; // Adjust the path as necessary if it's not directly in 'services'
 import PWD_Dashboard from './PWD-Dashboard';
+import DoctorsDashboard from './Doctors_Dashboard';
 
 // Import your content components
 import DashboardContent from './DashboardContent';
@@ -115,7 +116,7 @@ const UserDashboard = ({ userData,  onAppLogout }) => {
    
     switch (currentPage) {
       case 'dashboard':
-        return <PWD_Dashboard userData={userData} />;
+        return <DoctorsDashboard userData={userData} />;
       case 'assessments':
         return <AssessmentsContent />;
       case 'documents':
