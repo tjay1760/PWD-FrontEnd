@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import ReportAndFeedbackForm from "./PWD_Report_ad_Feedback";
 import DetailsImage from "../../assets/details-image.png"; // Assuming you have an image for details
 import AppontmentCalender from "../../assets/appointment-calender.svg"; // Assuming you have an image for appointment calendar
 import Tickheart from "../../assets/vuesax-linear-heart-tick.svg";
@@ -148,8 +149,13 @@ return (
                             </div>
                         </div>
                     </div>
+                    <div className="calenderandform grid grid-cols-2 gap-10 mx-auto px-10">
+<CalendarView/>
+                        <ReportAndFeedbackForm/>
+                    </div>
+                        
     </div>
-    
+
 )
 }
 
