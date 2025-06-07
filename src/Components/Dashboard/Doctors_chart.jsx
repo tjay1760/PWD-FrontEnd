@@ -1,5 +1,4 @@
 
-
 import * as React from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
 import {
@@ -10,7 +9,6 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import {
-
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -37,23 +35,21 @@ const chartData = [
 const chartConfig = {
   value: {
     label: "Assessments",
-    color: "hsl(var(--chart-1))",
+    color: "#2563eb", // This will be used by shadcn's internal chart.tsx
   },
 };
 
 export function DisabilityAssessmentChart() {
-  const [selectedMonth, setSelectedMonth] = React.useState("june"); // State for month filter
+  const [selectedMonth, setSelectedMonth] = React.useState("june");
 
-  // Function to render custom labels on the bars
   const renderCustomBarLabel = ({ x, y, width, height, value }) => {
-    // Adjust position based on whether the bar is very small
-    const offset = value > 0 ? 10 : 0; // Small offset for non-zero values
+    const offset = value > 0 ? 10 : 0;
     return (
       <text
-        x={x + width + offset} // Position text to the right of the bar
+        x={x + width + offset}
         y={y + height / 2}
-        dy={3} // Adjust vertical alignment
-        fill="#4A5568" // Gray text color
+        dy={3}
+        fill="hsl(var(--muted-foreground))" // Use a foreground color for better contrast
         fontSize={12}
         textAnchor="start"
       >
@@ -63,11 +59,11 @@ export function DisabilityAssessmentChart() {
   };
 
   return (
-    <Card className="col-span-1"> {/* Or adjust col-span for your layout */}
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+    <Card className="col-span-1">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 ">
         <div>
-          {/* Apply green color to title */}
-          <CardTitle className="text-xl font-semibold text-green-700">
+          {/* Apply the custom green color to title using a direct CSS variable reference */}
+          <CardTitle className="text-xl font-semibold" style={{ color: 'var(--green-title)' }}>
             Total Assessments by Disability Type
           </CardTitle>
           <CardDescription>
@@ -82,60 +78,59 @@ export function DisabilityAssessmentChart() {
                 <SelectItem value="april">April</SelectItem>
                 <SelectItem value="may">May</SelectItem>
                 <SelectItem value="june">June</SelectItem>
-                {/* Add more months */}
               </SelectContent>
             </Select>
           </CardDescription>
         </div>
-        {/* Placeholder for potential header icon if any */}
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
           <BarChart
             accessibilityLayer
             data={chartData}
-            layout="vertical" // Important for horizontal bars
+            layout="vertical"
             margin={{
               left: 10,
-              right: 25, // Give some space for labels on the right
+              right: 25,
               top: 5,
               bottom: 5,
             }}
           >
-            <CartesianGrid horizontal={false} strokeDasharray="3 3" /> {/* Vertical dashed lines */}
+            <CartesianGrid horizontal={false} stroke="hsl(var(--border))" strokeDasharray="3 3" /> {/* Use border color */}
             <XAxis
-              type="number" // X-axis is numeric for values
-              hide // Hide the X-axis line/ticks if not desired
+              type="number"
+              hide
               axisLine={false}
               tickLine={false}
               tick={{ fill: "hsl(var(--muted-foreground))" }}
             />
             <YAxis
-              dataKey="disability" // Y-axis displays disability names
+              dataKey="disability"
               type="category"
               axisLine={false}
               tickLine={false}
               tickMargin={8}
-              width={100} // Adjust width for long labels
+              width={100}
               tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
             />
             <Tooltip
               cursor={false}
-              content={<ChartTooltipContent hideLabel />} // Hide default label in tooltip
+              content={<ChartTooltipContent hideLabel />}
             />
             <Bar
               dataKey="value"
-              fill="var(--color-value)" // Uses color from chartConfig
-              radius={[0, 4, 4, 0]} // Rounded corners on the right side
-              label={renderCustomBarLabel} // Apply custom labels
-              minPointSize={1} // Ensure even 0-value bars are slightly visible or remove if you want them invisible
+               fill="#2A5CAA" 
+              radius={[0, 4, 4, 0]}
+              label={renderCustomBarLabel}
+              minPointSize={1}
             />
           </BarChart>
         </ChartContainer>
       </CardContent>
       <div className="flex items-end justify-between px-6 pb-4">
         <div className="text-sm text-gray-600">
-          <p className="font-semibold text-green-700">Down by 12% this month</p>
+          {/* Apply the custom green color to the percentage text */}
+          <p className="font-semibold" style={{ color: 'var(--green-title)' }}>Down by 12% this month</p>
           <p>Showing Total Booked Assessment for the month of June</p>
         </div>
         <img src={WheeelChairIcon} alt="Accessibility Icon" className="w-8 h-8 opacity-70" />
