@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64.002" height="64.002" viewBox="0 0 64.002 64.002">
+  <g id="vuesax_linear_award" data-name="vuesax/linear/award" transform="translate(-428 -188)" opacity="0.25">
+    <g id="award" transform="translate(428 188)">
+      <path id="Vector" d="M0,16.047V29.3c0,4.853,0,4.853,4.587,7.947L17.2,44.528a7.626,7.626,0,0,0,6.88,0l12.614-7.28c4.587-3.093,4.587-3.093,4.587-7.947V16.047c0-4.853,0-4.853-4.587-7.947L24.081.82a7.626,7.626,0,0,0-6.88,0L4.587,8.1C0,11.194,0,11.194,0,16.047Z" transform="translate(11.36 13.34)" fill="none" stroke="#4caf50" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+      <path id="Vector-2" data-name="Vector" d="M29.334,15.014V8q0-8-8-8H8Q0,0,0,8v6.827" transform="translate(17.334 5.333)" fill="none" stroke="#4caf50" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+      <path id="Vector-3" data-name="Vector" d="M10.435,1.08l1.52,2.373a2.323,2.323,0,0,0,1.173.853L15.848,5a1.841,1.841,0,0,1,1.04,3.2L15.1,10.36a2.393,2.393,0,0,0-.453,1.387l.16,2.8a1.836,1.836,0,0,1-2.72,1.973L9.475,15.48a2.3,2.3,0,0,0-1.467,0L5.395,16.52a1.841,1.841,0,0,1-2.72-1.973l.16-2.8a2.333,2.333,0,0,0-.453-1.387L.595,8.2A1.841,1.841,0,0,1,1.635,5l2.72-.693a2.255,2.255,0,0,0,1.173-.853L7.048,1.08A1.868,1.868,0,0,1,10.435,1.08Z" transform="translate(23.246 28.228)" fill="none" stroke="#4caf50" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+      <path id="Vector-4" data-name="Vector" d="M0,0H64V64H0Z" transform="translate(64.002 64.002) rotate(180)" fill="none" opacity="0"/>
+    </g>
+  </g>
+</svg>

@@ -1,12 +1,11 @@
 import './App.css';
 import Registration from './Components/registration';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SetPasswordOTP from './Components/Onetimepin';
 import PasswordSetupComponent from './Components/passwordSetup';
-// import ConfirmationDialog from './Components/ConfirmationDialog'; // Not used in provided code
-import UserDashboard from './Components/Dashboard/Dashboard'; // Ensure this path is correct
+import UserDashboard from './Components/Dashboard/Dashboard';
 import LoginForm from './Components/LoginForm';
-import { useEffect } from 'react';
+import { Toaster } from 'react-hot-toast'; // Import Toaster
 
 function App() {
   const STEPS = {
@@ -14,30 +13,42 @@ function App() {
     REGISTRATION: 'registration',
     PASSWORD_SETUP: 'password_setup',
     OTP_SETUP: 'otp_setup',
-    COMPLETED: 'completed', // This is where UserDashboard is rendered
-    DASHBOARD: 'dashboard', // Let's define a clearer step for the dashboard
+    DASHBOARD: 'dashboard',
   };
-  // Let's use DASHBOARD as the final step for clarity
   const [currentStep, setCurrentStep] = useState(STEPS.LOGIN);
   const [registrationFormData, setRegistrationFormData] = useState(null);
-  const [loggedInUserData, setLoggedInUserData] = useState(null); // New state for logged-in user data
+  const [loggedInUserData, setLoggedInUserData] = useState(null); // This state will now be managed persistently
 
-  // In App.js
-useEffect(() => {
-  const accessToken = localStorage.getItem('accessToken');
-  if (accessToken) {
-    // Here, you would typically make an API call to get user profile
-    // using the accessToken, or retrieve it from localStorage if you stored it.
-    // For now, let's just assume if token exists, we go to dashboard.
-    // In a real app, you'd fetch user data and then set it.
-    setCurrentStep(STEPS.DASHBOARD);
-    // If you store user data in localStorage too:
-    // const storedUserData = localStorage.getItem('userData');
-    // if (storedUserData) {
-    //   setLoggedInUserData(JSON.parse(storedUserData));
-    // }
-  }
-}, []); // Empty dependency array means this runs once on mount
+  useEffect(() => {
+    const accessToken = localStorage.getItem('accessToken');
+    const storedUserData = localStorage.getItem('userData'); // Try to get stored user data
+
+    if (accessToken && storedUserData) {
+      try {
+        setLoggedInUserData(JSON.parse(storedUserData)); // Parse and set user data
+        setCurrentStep(STEPS.DASHBOARD); // Go to dashboard if token and data exist
+      } catch (error) {
+        console.error("Failed to parse stored user data:", error);
+        // Clear invalid data and force re-login if parsing fails
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('userData');
+        setCurrentStep(STEPS.LOGIN);
+      }
+    } else if (accessToken && !storedUserData) {
+      // Scenario: accessToken exists but userData doesn't (e.g., first login, or data wasn't stored)
+      // In a real app, you'd fetch user profile here using the accessToken.
+      // For this example, we'll just fall back to login if data isn't found immediately.
+      // You might show a loading spinner and then fetch user details.
+      console.warn("Access token found, but user data not in localStorage. Redirecting to login.");
+      localStorage.removeItem('accessToken'); // Clear potentially stale token
+      localStorage.removeItem('refreshToken');
+      setCurrentStep(STEPS.LOGIN);
+    } else {
+      // No access token, or invalid token/data leads to login
+      setCurrentStep(STEPS.LOGIN);
+    }
+  }, []); // Empty dependency array means this runs once on mount
 
   const handleRegisterClick = () => {
     setCurrentStep(STEPS.REGISTRATION);
@@ -53,7 +64,6 @@ useEffect(() => {
   };
 
   const handleOTPSetupComplete = () => {
-    // This used to set to STEPS.COMPLETED, now let's set it to DASHBOARD
     setCurrentStep(STEPS.DASHBOARD);
   };
 
@@ -62,17 +72,29 @@ useEffect(() => {
   };
 
   const handleLoginSuccess = (userData) => {
-    // Optionally store the user data returned from the API
+    // Store the user data in localStorage on successful login
     setLoggedInUserData(userData);
-    setCurrentStep(STEPS.DASHBOARD); // Set current step to render the dashboard
+    localStorage.setItem('userData', JSON.stringify(userData)); // Store user data
+    setCurrentStep(STEPS.DASHBOARD);
+  };
+
+  const handleAppLogout = () => {
+    // Clear user data from localStorage and state on logout
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userData'); // Clear user data from localStorage
+    setLoggedInUserData(null); // Clear user data from state
+    setCurrentStep(STEPS.LOGIN);
   };
 
   return (
     <>
+      <Toaster />
+
       {currentStep === STEPS.LOGIN && (
         <LoginForm
           onRegisterClick={handleRegisterClick}
-          onLoginSuccess={handleLoginSuccess} // Pass the new handler to LoginForm
+          onLoginSuccess={handleLoginSuccess}
         />
       )}
 
@@ -96,13 +118,15 @@ useEffect(() => {
         <SetPasswordOTP onOtpSetupComplete={handleOTPSetupComplete} />
       )}
 
-      {/* Render UserDashboard when currentStep is DASHBOARD */}
       {currentStep === STEPS.DASHBOARD && (
-        <UserDashboard userData={loggedInUserData} /> 
+        <UserDashboard
+          userData={loggedInUserData} // Pass the persisted user data
+          onAppLogout={handleAppLogout}
+        />
       )}
       {
-  console.log('User Data Logged:', loggedInUserData)
-}
+        console.log('Current Step:', currentStep, 'Logged User Data:', loggedInUserData)
+      }
     </>
   );
 }
