@@ -1,6 +1,6 @@
 // passwordSetup.jsx
 import React, { useState } from 'react';
-import wheelchairIcon from "../assets/Wheelchair man.png";
+import wheelchairIcon from "../assets/Wheelchair man.png"; // Make sure this path is correct
 
 const PasswordSetupComponent = ({ onPasswordSetupComplete, formData }) => {
   const [password, setPassword] = useState('');
@@ -8,6 +8,11 @@ const PasswordSetupComponent = ({ onPasswordSetupComplete, formData }) => {
   const [errors, setErrors] = useState({}); // For client-side validation errors
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState({ message: '', type: '' });
+
+  // Helper booleans for cleaner conditional logic
+  const isPWD = formData.userType?.includes("Person With Disability");
+  const isGuardian = formData.userType?.includes("Guardian");
+  const isOfficer = formData.userType?.includes("Officer");
 
   const validatePasswords = () => {
     const newErrors = {};
@@ -46,97 +51,122 @@ const PasswordSetupComponent = ({ onPasswordSetupComplete, formData }) => {
         return; // Stop submission if client-side validation fails
     }
 
-    // --- CORRECTED: Validate frontend formData keys ---
-    const requiredFields = [
+    // --- Start: Corrected Frontend formData Validation ---
+    const baseFields = [
       'firstName',
       'lastName',
-      'idNumber', // Corresponds to formData.idNumber
-      'gender',
-      'dateOfBirth', // Corresponds to formData.dateOfBirth
-      'phoneNumber', // Corresponds to formData.phoneNumber
+      'idNumber',
+      'phoneNumber',
       'email',
-      'county',
-      'subCounty',
     ];
 
-    let currentRequiredFields = [...requiredFields]; // Copy to modify based on role
+    let currentRequiredFields = [...baseFields];
 
-    // For Officer role, validate specific officer fields
-    console.log("formData.userType:", formData);
-    if (formData.userType.includes("Officer")) {
-        // These are separate states in Registration.jsx, so they are passed directly.
-        // Assuming medicalLicenceNumber, speciality, officerType, countyOfPractice, subCounty (for officer) are required
-        if (!formData.officerType) currentRequiredFields.push('officerType');
-        if (!formData.countyOfPractice) currentRequiredFields.push('countyOfPractice');
-        if (!formData.subCounty) currentRequiredFields.push('subCounty (Officer)'); // Be specific if needed
-        if (!formData.medicalFacility) currentRequiredFields.push('medicalFacility');
-        if (!formData.medicalLicenceNumber) currentRequiredFields.push('medicalLicenceNumber');
-        if (!formData.speciality) currentRequiredFields.push('speciality');
-    } else { // PWD or Guardian roles might have specific requirements
-        // If 'maritalStatus', 'occupation', 'education' are strictly required for PWD/Guardian, add them here
-        // if (!formData.maritalStatus) currentRequiredFields.push('maritalStatus');
-        // if (!formData.occupation) currentRequiredFields.push('occupation');
-        // if (!formData.education) currentRequiredFields.push('education');
-
-        // Check for Next of Kin fields if it's PWD or Guardian
-        if (formData.userType.includes("Person With Disability") || formData.userType.includes("Guardian")) {
-            if (!formData.emergencyName) currentRequiredFields.push('emergencyName');
-            if (!formData.emergencyRelationship) currentRequiredFields.push('emergencyRelationship');
-            if (!formData.emergencyPhone) currentRequiredFields.push('emergencyPhone');
-        }
+    // Gender and Date of Birth are only required for PWD and Guardian
+    if (isPWD || isGuardian) {
+      currentRequiredFields.push('gender', 'dateOfBirth');
     }
 
+    // County and SubCounty are only required for PWD
+    if (isPWD) {
+      currentRequiredFields.push('county', 'subCounty');
+    }
 
-    const missingFields = currentRequiredFields.filter(field => {
-        // Special handling for nested or conditional fields if needed
-        if (field === 'subCounty (Officer)') {
-            return !formData.subCounty; // Check the subCounty from officer details
-        }
-        return !formData[field];
-    });
+    // Officer-specific fields
+    if (isOfficer) {
+      currentRequiredFields.push(
+        'officerType',
+        'countyOfPractice', // Officer's county of practice is required
+        'medicalFacility',
+        'medicalLicenceNumber',
+        'speciality'
+      );
+      // If officer's subCounty of practice is different from the general 'subCounty' and is required:
+      // currentRequiredFields.push('officerSubCountyOfPractice'); // Example for a distinct field
+      // If it reuses formData.subCounty for practice location and is required:
+      currentRequiredFields.push('subCounty');
+    }
+
+    // PWD-specific Next of Kin fields
+    if (isPWD) {
+      currentRequiredFields.push(
+        'emergencyName',
+        'emergencyRelationship',
+        'emergencyPhone'
+      );
+    }
+
+    // Validate for missing fields in formData
+    const missingFields = currentRequiredFields.filter(field => !formData[field]);
 
     if (missingFields.length > 0) {
-        setNotification({ message: `Missing required fields: ${missingFields.join(', ')}. Please go back and complete the registration form.`, type: 'error' });
-        setLoading(false); // Stop loading if fields are missing
-        return; // Stop submission if initial form data is incomplete
+      setNotification({
+        message: `Missing required fields: ${missingFields.join(', ')}. Please go back and complete the registration form.`,
+        type: 'error',
+      });
+      setLoading(false);
+      return;
     }
-    // --- END CORRECTION ---
+    // --- End: Corrected Frontend formData Validation ---
 
 
     setLoading(true);
     try {
-        let userRole = '';
-        if (formData.userType.includes("Person With Disability")) {
-            userRole = 'pwd';
-        } else if (formData.userType.includes("Guardian")) {
-            userRole = 'guardian';
-        } else if (formData.userType.includes("Officer")) {
-            userRole = 'officer';
+        let backendRole = ''; // This variable will hold the specific role string for the backend
+
+        if (isPWD) {
+            backendRole = 'pwd';
+        } else if (isGuardian) {
+            backendRole = 'guardian';
+        } else if (isOfficer) {
+            // Determine the specific officer role based on formData.officerType
+            if (formData.officerType === "County Health Director") {
+                backendRole = 'county_director';
+            } else if (formData.officerType === "Medical Assessment Officer") {
+                backendRole = 'medical_officer';
+            } else {
+                // Fallback for unexpected officerType. Consider if this should throw an error
+                // if your backend strictly only accepts the two specific officer roles.
+                console.warn("Unexpected officerType received:", formData.officerType);
+                backendRole = 'officer_unknown'; // Or throw new Error("Invalid officer type")
+            }
         }
 
+        // Prepare dataToSend with default values for non-collected fields
         const dataToSend = {
             firstName: formData.firstName,
             lastName: formData.lastName,
             email: formData.email,
-            nationalId: formData.idNumber, // Map idNumber to nationalId
-            phone: formData.phoneNumber,   // Map phoneNumber to phone
+            nationalId: formData.idNumber,
+            phone: formData.phoneNumber,
             password: password,
-            gender: formData.gender.toLowerCase(),
-            dob: formData.dateOfBirth,     // Map dateOfBirth to dob
-            county: formData.county,       // Use general county/subCounty first
-            subCounty: formData.subCounty, // Use general county/subCounty first
-            role: userRole,
+            role: backendRole, // Assign the dynamically determined role
+
+            // Conditionally set gender, dob, county, subCounty
+            gender: (isPWD || isGuardian) ? formData.gender.toLowerCase() : 'other', // Default for officers
+            dob: (isPWD || isGuardian) ? formData.dateOfBirth : '1900-01-01', // Default date for officers
+            county: isPWD ? formData.county : (isGuardian ? 'not provided' : 'not applicable'), // Default for officers/guardians
+            subCounty: isPWD ? formData.subCounty : (isGuardian ? 'not provided' : 'not applicable'), // Default for officers/guardians
         };
 
-        // Add officer-specific fields to dataToSend only if the role is 'officer'
-        // These fields are taken directly from initialformData as passed from Registration.jsx
-        if (userRole === 'officer') {
-            dataToSend.officerType = formData.officerType;
+        // Add officer-specific fields only if the role is an officer type
+        if (isOfficer) {
+            dataToSend.officerType = formData.officerType; // Send original string too if backend expects it
             dataToSend.countyOfPractice = formData.countyOfPractice;
-            dataToSend.subCounty = formData.subCounty; // This is the officer's subCounty if distinct
             dataToSend.medicalFacility = formData.medicalFacility;
             dataToSend.medicalLicenceNumber = formData.medicalLicenceNumber;
             dataToSend.speciality = formData.speciality;
+            // The officer's specific subCounty of practice will be in formData.subCounty,
+            // which is already being sent as dataToSend.subCounty.
+            // If it's a different field entirely on the backend, adjust here:
+            // dataToSend.officerSubCountyOfPractice = formData.officerSubCounty;
+        }
+
+        // Add PWD-specific fields (Next of Kin)
+        if (isPWD) {
+            dataToSend.emergencyName = formData.emergencyName;
+            dataToSend.emergencyRelationship = formData.emergencyRelationship;
+            dataToSend.emergencyPhone = formData.emergencyPhone;
         }
 
 
@@ -154,7 +184,6 @@ const PasswordSetupComponent = ({ onPasswordSetupComplete, formData }) => {
             const result = await response.json();
             console.log('Registration successful:', result);
             setNotification({ message: 'User registered successfully!', type: 'success' });
-            // Optionally, you might want to delay this call to give the user time to read the success message
             setTimeout(() => {
                 onPasswordSetupComplete();
             }, 2000); // Wait 2 seconds before navigating

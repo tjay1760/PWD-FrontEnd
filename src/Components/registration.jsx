@@ -87,7 +87,7 @@ const Registration = ({onRegistrationComplete,onLoginClick}) => {
               return false;
           }
       }
-    } else if (step === 3 && selectedRoles.includes("Guardian") || selectedRoles.includes("Person With Disability")) {
+    } else if (step === 3 && selectedRoles.includes("Person With Disability")) {
       // Validate Next of Kin
       if (!formData.emergencyName || !formData.emergencyPhone) {
         setNotification({ message: 'Please fill in all required fields for Next of Kin.', type: 'error' });

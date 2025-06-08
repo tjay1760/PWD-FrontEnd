@@ -30,7 +30,7 @@ const DoctorsAssesment = () => {
             <AssessmentsTable />
         </div>
                 <div className="table-container">
-            <h2 className="text-2xl font-bold mb-4">PWD Flagged for Reviewgit</h2>
+            <h2 className="text-2xl font-bold mb-4">PWD Flagged for Review</h2>
             <AssessmentsTable />
         </div>
     </div>
