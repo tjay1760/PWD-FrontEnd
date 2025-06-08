@@ -7,20 +7,20 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card";
+} from "../../../components/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "../../components/ui/chart";
+} from "../../../components/ui/chart";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../components/ui/select";
-import WheeelChairIcon from "../../assets/Wheelchair man.png"; // Assuming this is the accessibility icon
+} from "../../../components/ui/select";
+import WheeelChairIcon from "../../../assets/Wheelchair man.png"; // Assuming this is the accessibility icon
 
 const chartData = [
   { disability: "Disability 1", value: 4 },

@@ -12,15 +12,15 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import DetailsImage from "../../assets/details-image.png"; // Assuming you have an image for details
-import AppontmentCalender from "../../assets/appointment-calender.svg"; // Assuming you have an image for appointment calendar
-import Tickheart from "../../assets/vuesax-linear-heart-tick.svg";
-import HeartSearch from "../../assets/vuesax-linear-heart-search.svg";
-import LinearLike from "../../assets/vuesax-linear-like.svg";
-import LinearLovely from "../../assets/vuesax-linear-lovely.svg";
-import AssessmentsTable from "./AssesmentsTable";
-import CalendarView from "./CalendarView";
-import { DisabilityAssessmentChart } from "./Doctors_chart";
+import DetailsImage from "../../../assets/details-image.png"; // Assuming you have an image for details
+import AppontmentCalender from "../../../assets/appointment-calender.svg"; // Assuming you have an image for appointment calendar
+import Tickheart from "../../../assets/vuesax-linear-heart-tick.svg";
+import HeartSearch from "../../../assets/vuesax-linear-heart-search.svg";
+import LinearLike from "../../../assets/vuesax-linear-like.svg";
+import LinearLovely from "../../../assets/vuesax-linear-lovely.svg";
+import AssessmentsTable from "../AssesmentsTable";
+import CalendarView from "../CalendarView";
+import { DisabilityAssessmentChart } from '../Doctor/Doctors_chart';
 import { MedicalAssessmentsMap } from './HealthOfficerMap';
 
 const Health_Officers_Dashboard = ({userData}) => {

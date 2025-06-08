@@ -8,9 +8,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card";
-import { Label } from "../../components/ui/label";
-import { Button } from "../../components/ui/button";
+} from "../../../components/ui/card";
+import { Label } from "../../../components/ui/label";
+import { Button } from "../../../components/ui/button";
 import { format } from "date-fns";
 import { Pencil1Icon } from "@radix-ui/react-icons"; // For the Edit icon
 // Or if you use lucide-react for icons:

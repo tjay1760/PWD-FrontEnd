@@ -9,16 +9,16 @@ import {
 import toast from 'react-hot-toast'; // Import toast
 
 import authService from '../authService'; // Adjust the path as necessary if it's not directly in 'services'
-import PWD_Dashboard from './PWD-Dashboard';
-import DoctorsDashboard from './Doctors_Dashboard';
-import Health_Officers_Dashboard from './Health_Officers_Dashboard';
+import PWD_Dashboard from './PWD/PWD-Dashboard';
+import DoctorsDashboard from './Doctor/Doctors_Dashboard';
+import Health_Officers_Dashboard from './Health_Officer/Health_Officers_Dashboard';
 
 // Import your content components
 import DashboardContent from './DashboardContent';
 import AssessmentsContent from './AssessmentsContent ';
 import DocumentsContent from './DocumentsContent';
 import Navbar from './Navbar';
-import PWDAssesmentsPage from './PWDAssesmentsPage';
+import PWDAssesmentsPage from './PWD/PWDAssesmentsPage';
 
 
 

@@ -8,8 +8,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card";
-import { Input } from "../../components/ui/input"; // Assuming shadcn Input
+} from "../../../components/ui/card";
+import { Input } from "../../../components/ui/input"; // Assuming shadcn Input
 import { MapContainer, TileLayer, GeoJSON, CircleMarker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import toast from "react-hot-toast"; // For notifications

@@ -1,5 +1,5 @@
 import React from 'react'
-import CalendarView from './CalendarView'
+import CalendarView from '../CalendarView'
 import { BookAssessmentForm } from './PWD_Assesment_Form'
 const PWDAssesmentsPage = () => {
   return (
