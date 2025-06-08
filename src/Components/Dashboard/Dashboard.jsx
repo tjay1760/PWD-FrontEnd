@@ -19,6 +19,7 @@ import AssessmentsContent from './AssessmentsContent ';
 import DocumentsContent from './DocumentsContent';
 import Navbar from './Navbar';
 import PWDAssesmentsPage from './PWD/PWDAssesmentsPage';
+import DoctorsAssesment from './Doctor/DoctorsAssesment';
 
 
 
@@ -120,7 +121,7 @@ const UserDashboard = ({ userData,  onAppLogout }) => {
       case 'dashboard':
         return <Health_Officers_Dashboard userData={userData} />;
       case 'assessments':
-        return <PWDAssesmentsPage />;
+        return <DoctorsAssesment />;
       case 'documents':
         return <DocumentsContent />;
       default:
