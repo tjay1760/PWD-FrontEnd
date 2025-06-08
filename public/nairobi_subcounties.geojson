@@ -1,0 +1,55 @@
+
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Dagoretti North",
+        "county": "Nairobi",
+        "assessmentCount": 45, 
+        "center_lat": -1.28,
+        "center_lng": 36.78
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+         
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Embakasi Central",
+        "county": "Nairobi",
+        "assessmentCount": 30,
+        "center_lat": -1.29,
+        "center_lng": 36.90
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+         
+        ]
+      }
+    },
+    
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Westlands",
+        "county": "Nairobi",
+        "assessmentCount": 60,
+        "center_lat": -1.26,
+        "center_lng": 36.80
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+         
+        ]
+      }
+    }
+  ]
+}
