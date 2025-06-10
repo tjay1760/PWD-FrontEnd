@@ -44,7 +44,7 @@ function stringToColor(string) {
 
 
 // --- Main Navbar Component ---
-export default function Navbar({ userName = "John Doe", onLogout }) {
+export default function Navbar({ userName = "John Doe", onLogout, userRole }) {
   const userSurname = userName.split(' ').pop();
   const avatarLetter = userSurname ? userSurname[0].toUpperCase() : '';
 
@@ -61,7 +61,7 @@ export default function Navbar({ userName = "John Doe", onLogout }) {
 
       {/* Right Section - Icons and Avatar */}
       <div className="flex items-center space-x-4">
-        <span className="text-sm font-medium text-gray-700 hidden sm:block">PWD</span>
+        <span className="text-sm font-medium text-gray-700 hidden sm:block">{userRole.toUpperCase()}</span>
         <RefreshCcw className="w-5 h-5 cursor-pointer text-gray-600" />
         <img src={HelpIcon} alt="Help" className="w-5 h-5 cursor-pointer" />
         <Bell className="w-5 h-5 cursor-pointer text-gray-600" />
