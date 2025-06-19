@@ -32,14 +32,17 @@ const LoginForm = ({ onRegisterClick, onLoginSuccess }) => { // <--- ADDED onLog
 
       if (response.ok) {
         console.log('Login successful:', data);
-        localStorage.setItem('accessToken', data.access_token);
-        localStorage.setItem('refreshToken', data.refresh_token);
+        localStorage.setItem('accessToken', data.tokens.access);
+        localStorage.setItem('refreshToken', data.tokens.refresh);
 
+        const userDetails = data.user || data;
+  localStorage.setItem('user', JSON.stringify(userDetails));
+  localStorage.setItem('userId', userDetails.id); 
         // *** CRUCIAL CHANGE: CALL onLoginSuccess ***
         if (onLoginSuccess) {
           // Assuming your backend returns user data directly in the response
           // or within a 'user' key (e.g., data.user). Adjust as per your API.
-          const userDetails = data.user || data; 
+          // const userDetails = data.user || data; 
           onLoginSuccess(userDetails); // Pass the user data to the parent
         }
         // No need for alert('Login Successful!') here as the dashboard will render

@@ -1,4 +1,3 @@
-// src/components/ReviewAssessmentForm.jsx
 "use client"; // If using Next.js App Router
 
 import React from "react";
@@ -13,14 +12,12 @@ import { Label } from "../../../components/ui/label";
 import { Button } from "../../../components/ui/button";
 import { format } from "date-fns";
 import { Pencil1Icon } from "@radix-ui/react-icons"; // For the Edit icon
-// Or if you use lucide-react for icons:
-// import { EditIcon } from 'lucide-react';
 import toast from "react-hot-toast"; // Import toast
 
 /**
  * @typedef {Object} FormData
- * @property {string} assessmentType - The selected assessment type.
  * @property {string} county - The selected county.
+ * @property {string} preferredHospital - The selected preferred hospital. (NEW)
  * @property {Date | null} selectedDate - The selected date object.
  */
 
@@ -34,16 +31,13 @@ import toast from "react-hot-toast"; // Import toast
 export function ReviewAssessmentForm({ formData, onEdit, onConfirmSubmit }) {
   return (
     <Card className="w-full">
-      <CardHeader className="relative pb-2"> {/* Added relative for absolute positioning of edit button */}
-        {/* Green title */}
+      <CardHeader className="relative pb-2">
         <CardTitle className="text-xl font-semibold" style={{ color: 'var(--green-title)' }}>
-          Book Assessment
+          Review Assessment Details
         </CardTitle>
         <CardDescription>
-          Select the Assessment Type below and choose you preferred Location and
-          the Date you will be available
+          Please review the details below before confirming your assessment booking.
         </CardDescription>
-        {/* Edit Icon Button - Positioned absolutely */}
         <Button
           variant="ghost"
           size="icon"
@@ -52,51 +46,51 @@ export function ReviewAssessmentForm({ formData, onEdit, onConfirmSubmit }) {
           aria-label="Edit Assessment Details"
         >
           <Pencil1Icon className="h-5 w-5 text-gray-600" />
-          {/* If using Lucide: <EditIcon className="h-5 w-5 text-gray-600" /> */}
         </Button>
       </CardHeader>
       <CardContent>
         <form className="space-y-6">
-          {/* Assessment Type - Display Value */}
-          <div>
-            <Label htmlFor="assessmentType" className="text-sm font-bold text-gray-700">
-              Assessment Type<span className="text-red-500">*</span>
-            </Label>
-            <p className="border border-input bg-background px-3 py-2 rounded-md text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-              {formData.assessmentType || "N/A"}
-            </p>
-          </div>
 
           {/* Preferred Location (County) - Display Value */}
           <div>
             <Label htmlFor="county" className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">
-              Preferred Location
+              Preferred County<span className="text-red-500">*</span>
             </Label>
-            <p className="border border-input bg-background px-3 py-2 rounded-md text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <p className="border border-input bg-background px-3 py-2 rounded-md text-sm">
               {formData.county || "N/A"}
+            </p>
+          </div>
+
+          {/* Preferred Hospital - Display Value (NEW) */}
+          <div>
+            <Label htmlFor="preferredHospital" className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">
+              Preferred Hospital<span className="text-red-500">*</span>
+            </Label>
+            <p className="border border-input bg-background px-3 py-2 rounded-md text-sm">
+              {formData.preferredHospital || "N/A"}
             </p>
           </div>
 
           {/* Preferred Date - Display Value */}
           <div>
             <Label htmlFor="preferredDate" className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">
-              Preferred Date
+              Preferred Date<span className="text-red-500">*</span>
             </Label>
-            <p className="border border-input bg-background px-3 py-2 rounded-md text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <p className="border border-input bg-background px-3 py-2 rounded-md text-sm">
              {formData.selectedDate ? format(formData.selectedDate, "dd MMMM yyyy") : "N/A"}
             </p>
           </div>
 
           {/* Confirm and Submit Button */}
           <Button
-            type="button" // Change to type="button" to prevent default form submission if wrapped in a form
+            type="button"
             onClick={onConfirmSubmit}
             className="w-full text-lg font-semibold h-12"
             style={{
-              backgroundColor: 'oklch(0.488 0.243 140)', // A vibrant green for the button
+              backgroundColor: 'oklch(0.488 0.243 140)',
               color: 'white',
-              borderRadius: '0.5rem', // Match card's border-radius
-              border: '2px solid oklch(0.45 0.23 140)' // Slightly darker green border
+              borderRadius: '0.5rem',
+              border: '2px solid oklch(0.45 0.23 140)'
             }}
           >
             CONFIRM AND SUBMIT
