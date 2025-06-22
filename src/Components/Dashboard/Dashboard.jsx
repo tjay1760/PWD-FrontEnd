@@ -146,9 +146,9 @@ const UserDashboard = ({ userData, onAppLogout }) => {
       case 'assessments':
         if (userRole === 'pwd') {
           return <PWDAssesmentsPage userData={userData} />;
-        } else if (userRole === 'Doctor') {
+        } else if (userRole === 'medical_officer') {
           return <DoctorsAssesment userData={userData} />;
-        } else if (userRole === 'Health Officer') {
+        } else if (userRole === 'health_officer') {
           return <HealthOfficerAssesments userData={userData} />;
         }
         // Fallback or default assessments if role doesn't match

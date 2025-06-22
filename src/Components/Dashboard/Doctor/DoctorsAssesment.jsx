@@ -1,5 +1,6 @@
 import React from 'react'
 import AssessmentsTable from '../AssesmentsTable';
+import PWD_Profile from '../PWD/PWD_Profile';
 import { Button } from '../../../components/ui/button';
 import { HeartPlus } from 'lucide-react'; // Assuming you have a HeartPlus icon in lucide-react
 import toast from 'react-hot-toast';
@@ -25,14 +26,7 @@ const DoctorsAssesment = () => {
       <span>ADD APPOINTMENT</span>
     </Button>
     <div className="tables flex gap-6 border rounded-lg p-6">
-        <div className="table-container">
-            <h2 className="text-2xl font-bold mb-4">Doctors Assessments</h2>
-            <AssessmentsTable />
-        </div>
-                <div className="table-container">
-            <h2 className="text-2xl font-bold mb-4">PWD Flagged for Review</h2>
-            <AssessmentsTable />
-        </div>
+        <PWD_Profile />
     </div>
         </div>
   )
