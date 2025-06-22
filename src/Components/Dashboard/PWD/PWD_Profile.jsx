@@ -2,7 +2,8 @@ import React from "react";
 
 const PWD_Profile = () => {
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex border justify-between items-center w-full p-10">
+<div className="flex flex-col gap-5 w-2/3">
       <div class="w-full mx-auto bg-white rounded-lg shadow-sm p-4 flex items-center justify-between border border-gray-200">
         <div class="flex items-center space-x-4">
           <div class="w-14 h-14 bg-green-900 text-white rounded-full flex items-center justify-center text-lg font-semibold">
@@ -21,7 +22,7 @@ const PWD_Profile = () => {
           <span class="w-1.5 h-1.5 border  border-gray-400 rounded-full"></span>
         </div>
       </div>
-      <div class="max-w-4xl mx-auto bg-white rounded-lg border border-gray-200 p-6">
+      <div class="w-full mx-auto bg-white rounded-lg border border-gray-200 p-6">
         <div class="grid grid-cols-5 gap-y-6 text-sm text-gray-600">
           <div>
             <p class="mb-1">Date of Birth</p>
@@ -128,6 +129,75 @@ const PWD_Profile = () => {
           </div>
         </div>
     </div>
+    <div className="uploads">
+      <div class="max-w-md mx-auto border rounded-lg p-4 shadow-sm">
+  <div class="flex justify-between items-center mb-3">
+    <h2 class="text-green-900 font-semibold text-lg">Medical Records</h2>
+    <button class="flex items-center gap-1 text-sm text-gray-600 border rounded-md px-2 py-1 hover:bg-gray-100">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Add Record
+    </button>
+  </div>
+
+  <div class="border rounded-md">
+    <div class="flex items-center gap-2 p-2 border-b bg-gray-50 text-sm text-gray-500 font-medium">
+      <input type="checkbox" />
+      <span>Document Name</span>
+    </div>
+
+  
+    <div class="divide-y">
+      <div class="flex items-center gap-2 p-2 text-sm">
+        <input type="checkbox" />
+        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path d="M7 7h10M7 11h10M7 15h6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="flex-1 truncate">The quick, brown fox jumps over a lazy.pdf</span>
+        <button>
+          <svg class="w-4 h-4 text-gray-500 hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v16h16V4H4zm8 4v8m4-4H8" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-2 p-2 text-sm">
+        <input type="checkbox" />
+        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path d="M7 7h10M7 11h10M7 15h6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="flex-1 truncate">The quick, brown fox jumps over a lazy.pdf</span>
+        <button>
+          <svg class="w-4 h-4 text-gray-500 hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v16h16V4H4zm8 4v8m4-4H8" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-2 p-2 text-sm">
+        <input type="checkbox" />
+        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path d="M7 7h10M7 11h10M7 15h6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="flex-1 truncate">The quick, brown fox jumps over a lazy.pdf</span>
+        <button>
+          <svg class="w-4 h-4 text-gray-500 hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v16h16V4H4zm8 4v8m4-4H8" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center mt-3 text-sm text-gray-500 hover:underline cursor-pointer">
+    See all
+  </div>
+</div>
+
+    </div>
+    </div>
+    
   );
 };
 
