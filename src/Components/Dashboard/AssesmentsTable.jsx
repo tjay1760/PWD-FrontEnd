@@ -1,5 +1,4 @@
-// Components/Dashboard/AssessmentsTable.jsx
-import React, { useState, useMemo, useEffect } from 'react'; // Import useEffect
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -15,27 +14,32 @@ import {
   Menu,
   MenuItem,
   Typography,
-  CircularProgress, // Add for loading indicator
-  Box // Add for loading indicator container
+  CircularProgress,
+  Box,
+  Button
 } from '@mui/material';
-import { MoreVertical, ArrowUp, ArrowDown } from 'lucide-react';
+import { MoreVertical, ArrowUp, ArrowDown } from 'lucide-react'; // Remove ArrowLeft here
+// REMOVE THIS IMPORT: PWD_Profile should only be imported and rendered in Dashboard.jsx
+// import PWD_Profile from './PWD/PWD_Profile';
 
-function AssessmentsTable() {
-  // State to hold the fetched assessment data
+// ACCEPT onShowPwdProfile as a prop
+function AssessmentsTable({ onShowPwdProfile }) { // <--- Add onShowPwdProfile prop
   const [assessments, setAssessments] = useState([]);
-  const [loading, setLoading] = useState(true); // New loading state
-  const [error, setError] = useState(null); // New error state
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [order, setOrder] = useState('asc');
-  // Changed default orderBy to match a field present in fetched data
   const [orderBy, setOrderBy] = useState('pwdName');
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
-  // Fetch data on component mount
+  // REMOVE THESE STATES: These belong in the parent (Dashboard.jsx)
+  // const [showPwdProfile, setShowPwdProfile] = useState(false);
+  // const [currentPwdData, setCurrentPwdData] = useState(null);
+
   useEffect(() => {
     const fetchAssignedAssessments = async () => {
       const API_BASE_URL = 'http://localhost:5000/api';
@@ -48,7 +52,7 @@ function AssessmentsTable() {
       }
 
       try {
-        setLoading(true); // Start loading
+        setLoading(true);
         const response = await fetch(`${API_BASE_URL}/assessments/assigned`, {
           method: 'GET',
           headers: {
@@ -69,46 +73,43 @@ function AssessmentsTable() {
           }
           setError(errorMessage);
           console.error('Fetch error details:', response.status, errorData);
-          setAssessments([]); // Clear assessments on error
+          setAssessments([]);
         } else {
           const data = await response.json();
-          // Map fetched data to the format expected by your table
           const formattedAssessments = data.assessments.map(item => ({
-            id: item.id, // Use the actual ID
+            id: item.id,
+            pwdId: item.pwdId, // Assuming this is correctly coming from backend now
             pwdName: item.pwdName,
-            // Assuming a generic avatar for now, you can add dynamic avatars if available
-            avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`, // Random avatar for display
+            avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
             evaluationType: item.assessmentCategory,
-            // Backend status is like 'pending_review', 'mo_review', 'director_review', etc.
-            // You might want to format this for display, e.g., 'Pending Review'
             status: item.status.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase()),
-            // Format assessmentDate for display
             date: new Date(item.assessmentDate).toLocaleDateString('en-US', {
               weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
             }),
-            rawDate: new Date(item.assessmentDate), // Keep raw date for sorting
-            // Add other fields you might need for display or actions
+            rawDate: new Date(item.assessmentDate),
             pwdGender: item.pwdGender,
             pwdAge: item.pwdAge,
             county: item.county,
             hospital: item.hospital,
             createdAt: item.createdAt,
-            // ... any other fields you want to pass to the row
           }));
           setAssessments(formattedAssessments);
-          setError(null); // Clear any previous errors
+          setError(null);
         }
       } catch (err) {
         console.error('Network or unexpected error:', err);
         setError("A network error occurred. Please try again.");
-        setAssessments([]); // Clear assessments on network error
+        setAssessments([]);
       } finally {
-        setLoading(false); // End loading
+        setLoading(false);
       }
     };
 
+    // ALWAYS fetch assessments here regardless of PWD profile state
+    // The conditional rendering of PWD profile is now handled by Dashboard.jsx
     fetchAssignedAssessments();
-  }, []); // Empty dependency array means this runs once on mount
+
+  }, []); // <--- Remove showPwdProfile from dependency array
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
@@ -119,23 +120,76 @@ function AssessmentsTable() {
     setSelected([]);
   };
 
-  const handleClick = (event, id) => {
-    const selectedIndex = selected.indexOf(id);
-    let newSelected = [];
+  // Modified handleClick to CALL THE PROP FUNCTION
+  const handleClick = async (event, id, row) => {
+    // Prevent event bubbling to the checkbox if it's clicked
+    if (event.target.type === 'checkbox') {
+        const selectedIndex = selected.indexOf(id);
+        let newSelected = [];
 
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1),
-      );
+        if (selectedIndex === -1) {
+          newSelected = newSelected.concat(selected, id);
+        } else if (selectedIndex === 0) {
+          newSelected = newSelected.concat(selected.slice(1));
+        } else if (selectedIndex === selected.length - 1) {
+          newSelected = newSelected.concat(selected.slice(0, -1));
+        } else if (selectedIndex > 0) {
+          newSelected = newSelected.concat(
+            selected.slice(0, selectedIndex),
+            selected.slice(selectedIndex + 1),
+          );
+        }
+        setSelected(newSelected);
+        return; // Exit if checkbox was clicked
     }
-    setSelected(newSelected);
+
+
+    // Fetch user data directly when the row is clicked (excluding checkbox click)
+    if (row && row.pwdId) {
+        const userId = row.pwdId;
+        const API_BASE_URL = 'http://localhost:5000/api';
+        const accessToken = localStorage.getItem('accessToken');
+
+        if (!accessToken) {
+            console.error("Cannot fetch user details: No access token found.");
+            alert("Authentication token missing. Please log in.");
+            return;
+        }
+
+        try {
+            // DO NOT set local loading state for the profile here.
+            // The parent will handle overall content loading.
+            const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error(`Failed to fetch user details for ${userId}:`, response.status, errorData);
+                // Report error back to user or a centralized error handler
+                alert(`Failed to fetch user details: ${errorData.message || 'Unknown error'}`);
+            } else {
+                const userData = await response.json();
+                console.log(`Successfully fetched user data for ${userId}:`, userData);
+                // CALL THE onShowPwdProfile PROP TO TELL THE PARENT TO SHOW THE PROFILE
+                if (onShowPwdProfile) { // Ensure the prop exists before calling
+                  onShowPwdProfile(userData); // Assuming your backend returns { data: userObject }
+                }
+            }
+        } catch (err) {
+            console.error(`Network or unexpected error fetching user ${userId}:`, err);
+            alert("A network error occurred while fetching user details. Please try again.");
+        } finally {
+            // DO NOT end loading state here, as it's not managed locally for profile view
+        }
+    } else {
+        console.warn(`Could not find pwdId for assessment ID ${id}. Cannot fetch user data.`);
+        alert("Unable to fetch user details. Assessment data might be incomplete.");
+    }
   };
 
   const handleChangePage = (event, newPage) => {
@@ -149,7 +203,6 @@ function AssessmentsTable() {
 
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
-  // Sorting logic (modified to use new column names and rawDate for date sorting)
   const handleRequestSort = (property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -166,7 +219,6 @@ function AssessmentsTable() {
     let aValue = a[orderBy];
     let bValue = b[orderBy];
 
-    // Special handling for date sorting if you kept a raw date field
     if (orderBy === 'date' && a.rawDate && b.rawDate) {
       aValue = a.rawDate;
       bValue = b.rawDate;
@@ -199,10 +251,9 @@ function AssessmentsTable() {
         page * rowsPerPage,
         page * rowsPerPage + rowsPerPage,
       ),
-    [order, orderBy, page, rowsPerPage, assessments], // Now depends on 'assessments' state
+    [order, orderBy, page, rowsPerPage, assessments],
   );
 
-  // Status Badge Styling (Tailwind CSS)
   const getStatusBadge = (status) => {
     let bgColor = 'bg-gray-200';
     let textColor = 'text-gray-800';
@@ -211,11 +262,11 @@ function AssessmentsTable() {
         bgColor = 'bg-orange-100';
         textColor = 'text-orange-700';
         break;
-      case 'Mo Review': // Medical Officer Review
+      case 'Mo Review':
         bgColor = 'bg-blue-100';
         textColor = 'text-blue-700';
         break;
-      case 'Director Review': // County Director Review
+      case 'Director Review':
         bgColor = 'bg-purple-100';
         textColor = 'text-purple-700';
         break;
@@ -227,7 +278,7 @@ function AssessmentsTable() {
         bgColor = 'bg-red-100';
         textColor = 'text-red-700';
         break;
-      case 'No Show': // If your system uses this status
+      case 'No Show':
         bgColor = 'bg-red-100';
         textColor = 'text-red-700';
         break;
@@ -241,9 +292,7 @@ function AssessmentsTable() {
     );
   };
 
-  // Action Menu Handlers
   const handleMenuClick = (event, rowId) => {
-    // Store the rowId that the menu belongs to
     setAnchorEl({ target: event.currentTarget, rowId: rowId });
   };
 
@@ -251,12 +300,59 @@ function AssessmentsTable() {
     setAnchorEl(null);
   };
 
-  const handleMenuItemClick = (action) => {
-    // Access the rowId from anchorEl
+  const handleMenuItemClick = async (action) => {
     const rowId = anchorEl?.rowId;
     console.log(`Action: ${action} for row ID: ${rowId}`);
-    // Implement your logic for 'View', 'Edit', 'Submit' based on the action and rowId
-    // For example, navigate to a details page or open a modal
+
+    if (action === 'view') {
+      const assessmentToView = assessments.find(a => a.id === rowId);
+
+      if (assessmentToView && assessmentToView.pwdId) {
+        const userId = assessmentToView.pwdId;
+        const API_BASE_URL = 'http://localhost:5000/api';
+        const accessToken = localStorage.getItem('accessToken');
+
+        if (!accessToken) {
+          console.error("Cannot fetch user details: No access token found.");
+          alert("Authentication token missing. Please log in.");
+          handleMenuClose();
+          return;
+        }
+
+        try {
+          // DO NOT set local loading state for the profile here.
+          const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`
+            }
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error(`Failed to fetch user details for ${userId}:`, response.status, errorData);
+            alert(`Failed to fetch user details: ${errorData.message || 'Unknown error'}`);
+          } else {
+            const userData = await response.json();
+            console.log(`Successfully fetched user data for ${userId}:`, userData);
+            // CALL THE onShowPwdProfile PROP TO TELL THE PARENT TO SHOW THE PROFILE
+            if (onShowPwdProfile) {
+              onShowPwdProfile(userData); // Assuming your backend returns { data: userObject }
+            }
+          }
+        } catch (err) {
+          console.error(`Network or unexpected error fetching user ${userId}:`, err);
+          alert("A network error occurred while fetching user details. Please try again.");
+        } finally {
+            // DO NOT end loading state here.
+        }
+      } else {
+        console.warn(`Could not find assessment with ID ${rowId} or missing pwdId to fetch user data.`);
+        alert("Unable to fetch user details. Assessment data might be incomplete.");
+      }
+    }
+    // Add logic for other actions like 'submit', 'reschedule' here
     handleMenuClose();
   };
 
@@ -353,7 +449,7 @@ function AssessmentsTable() {
                 return (
                   <TableRow
                     hover
-                    onClick={(event) => handleClick(event, row.id)}
+                    onClick={(event) => handleClick(event, row.id, row)} // Pass 'row' here
                     role="checkbox"
                     aria-checked={isItemSelected}
                     tabIndex={-1}
@@ -366,6 +462,9 @@ function AssessmentsTable() {
                         color="primary"
                         checked={isItemSelected}
                         inputProps={{ 'aria-labelledby': `table-checkbox-${row.id}` }}
+                        // Prevent row click from firing when checkbox is clicked
+                        onClick={(event) => event.stopPropagation()}
+                        onChange={(event) => handleClick(event, row.id, row)} // Let checkbox handle its own click
                       />
                     </TableCell>
                     <TableCell component="th" id={`table-checkbox-${row.id}`} scope="row" padding="none">
@@ -379,17 +478,17 @@ function AssessmentsTable() {
                       {getStatusBadge(row.status)}
                     </TableCell>
                     <TableCell className="text-gray-600">{row.date}</TableCell>
-                    <TableCell align="right"></TableCell> {/* This cell was for Bulk Action, now empty if no bulk action */}
+                    <TableCell align="right"></TableCell>
                     <TableCell align="right">
                       <IconButton
                         aria-label="more"
-                        id={`action-button-${row.id}`} // Unique ID for each button
+                        id={`action-button-${row.id}`}
                         aria-controls={open && anchorEl?.rowId === row.id ? 'long-menu' : undefined}
                         aria-expanded={open && anchorEl?.rowId === row.id ? 'true' : undefined}
                         aria-haspopup="true"
                         onClick={(event) => {
-                          event.stopPropagation();
-                          handleMenuClick(event, row.id); // Pass row.id to handleMenuClick
+                          event.stopPropagation(); // Stop propagation to prevent row click from firing
+                          handleMenuClick(event, row.id);
                         }}
                         sx={{color: 'gray'}}
                       >
@@ -398,10 +497,10 @@ function AssessmentsTable() {
                       <Menu
                         id="long-menu"
                         MenuListProps={{
-                          'aria-labelledby': `action-button-${anchorEl?.rowId}`, // Link to the button that opened it
+                          'aria-labelledby': `action-button-${anchorEl?.rowId}`,
                         }}
-                        anchorEl={anchorEl?.target} // Use the target element from the state
-                        open={open && anchorEl?.rowId === row.id} // Only open if this row's button clicked
+                        anchorEl={anchorEl?.target}
+                        open={open && anchorEl?.rowId === row.id}
                         onClose={handleMenuClose}
                         PaperProps={{
                           style: {
@@ -410,12 +509,10 @@ function AssessmentsTable() {
                           },
                         }}
                       >
-                        {/* Define menu items based on status or role if needed */}
                         <MenuItem onClick={() => handleMenuItemClick('view')}>View</MenuItem>
-                        {row.status === 'Pending Review' && ( // Example: only show "Submit" if status is "Pending Review"
+                        {row.status === 'Pending Review' && (
                            <MenuItem onClick={() => handleMenuItemClick('submit')}>Submit Assessment</MenuItem>
                         )}
-                        {/* More actions based on the specific assessment status */}
                         <MenuItem onClick={() => handleMenuItemClick('reschedule')}>Reschedule</MenuItem>
 
                       </Menu>
@@ -430,7 +527,7 @@ function AssessmentsTable() {
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
-        count={assessments.length} // Use actual assessments length
+        count={assessments.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}

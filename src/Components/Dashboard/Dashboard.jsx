@@ -1,11 +1,12 @@
 // Components/Dashboard/Dashboard.jsx
-import React, { useState, useEffect } from 'react'; // Added useEffect for potential initial role-based routing
+import React, { useState, useEffect } from 'react';
 import {
   Users,
   Home,
   ClipboardList,
-  File
-} from 'lucide-react';
+  File,
+  ArrowLeft // Import ArrowLeft for the back button
+} from 'lucide-react'; // Make sure ArrowLeft is imported if you use it directly
 import toast from 'react-hot-toast';
 
 import authService from '../authService'; // Adjust the path as necessary
@@ -21,27 +22,30 @@ import HealthOfficerAssesments from './Health_Officer/HealthOfficerAssesments'; 
 
 // Import generic content components that might be shared or placeholders
 // Assuming DashboardContent, AssessmentsContent, DocumentsContent are generic or default
-import DashboardContent from './DashboardContent'; // Consider if this is still needed as a fallback
-import AssessmentsContent from './AssessmentsContent '; // Consider if this is still needed as a fallback
-import DocumentsContent from './DocumentsContent'; // This might be shared across roles
+import DashboardContent from './DashboardContent';
+import AssessmentsContent from './AssessmentsContent ';
+import DocumentsContent from './DocumentsContent';
 
 import Navbar from './Navbar';
+import PWD_Profile from './PWD/PWD_Profile';
 
 const UserDashboard = ({ userData, onAppLogout }) => {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [sidebarHovered, setSidebarHovered] = useState(false);
 
+  // NEW STATES FOR PWD PROFILE DISPLAY
+  const [showPwdProfile, setShowPwdProfile] = useState(false);
+  const [currentPwdData, setCurrentPwdData] = useState(null);
+
   const NAVBAR_HEIGHT = '4rem';
 
   // Determine user role from userData
-  const userRole = userData?.role; // Assuming userData has a 'role' property
+  const userRole = userData?.role;
 
-  // Optional: Set initial page based on role or preferences
   useEffect(() => {
     // You could set a default starting page based on role if needed
     // For now, we'll keep 'dashboard' as default and let renderContent handle it.
   }, [userRole]);
-
 
   const handleLogout = async () => {
     try {
@@ -53,6 +57,23 @@ const UserDashboard = ({ userData, onAppLogout }) => {
       toast.error('Logout failed. Please try again.');
       onAppLogout(); // Still force redirect even on client-side error
     }
+  };
+
+  // Function to show the PWD Profile
+  const handleShowPwdProfile = (pwdData) => {
+    setCurrentPwdData(pwdData);
+    setShowPwdProfile(true);
+    // Optionally, you might want to switch the `currentPage` state to something like 'pwdProfile'
+    // if you want the sidebar to highlight a different section or prevent other navigation.
+    // For now, we'll keep it simple and just rely on `showPwdProfile`.
+  };
+
+  // Function to go back to the previous view (e.g., Doctor's Dashboard or Assessments)
+  const handleBackFromPwdProfile = () => {
+    setShowPwdProfile(false);
+    setCurrentPwdData(null);
+    // You might want to intelligently set `currentPage` back to 'dashboard' or 'assessments'
+    // depending on where the user clicked from. For simplicity, we'll just go back to the previous state.
   };
 
   const renderSidebar = () => {
@@ -69,7 +90,6 @@ const UserDashboard = ({ userData, onAppLogout }) => {
       }, 200);
     };
 
-    // Sidebar items remain the same, but the content they trigger will be role-specific
     return (
       <div
         className={`fixed left-0 bg-white shadow-lg transition-all duration-300 z-50 ${
@@ -94,9 +114,12 @@ const UserDashboard = ({ userData, onAppLogout }) => {
 
           <nav className="space-y-2">
             <button
-              onClick={() => setCurrentPage('dashboard')}
+              onClick={() => {
+                setCurrentPage('dashboard');
+                setShowPwdProfile(false); // Reset profile view when navigating sidebar
+              }}
               className={`w-full flex items-center p-3 rounded-lg transition-colors ${
-                currentPage === 'dashboard' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
+                currentPage === 'dashboard' && !showPwdProfile ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <Home className="w-5 h-5" />
@@ -104,9 +127,12 @@ const UserDashboard = ({ userData, onAppLogout }) => {
             </button>
 
             <button
-              onClick={() => setCurrentPage('assessments')}
+              onClick={() => {
+                setCurrentPage('assessments');
+                setShowPwdProfile(false); // Reset profile view when navigating sidebar
+              }}
               className={`w-full flex items-center p-3 rounded-lg transition-colors ${
-                currentPage === 'assessments' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
+                currentPage === 'assessments' && !showPwdProfile ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <ClipboardList className="w-5 h-5" />
@@ -114,9 +140,12 @@ const UserDashboard = ({ userData, onAppLogout }) => {
             </button>
 
             <button
-              onClick={() => setCurrentPage('documents')}
+              onClick={() => {
+                setCurrentPage('documents');
+                setShowPwdProfile(false); // Reset profile view when navigating sidebar
+              }}
               className={`w-full flex items-center p-3 rounded-lg transition-colors ${
-                currentPage === 'documents' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
+                currentPage === 'documents' && !showPwdProfile ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <File className="w-5 h-5" />
@@ -130,36 +159,51 @@ const UserDashboard = ({ userData, onAppLogout }) => {
 
 
   const renderContent = () => {
-    // Determine which dashboard and assessment component to render based on user role
+    console.log('showPwdProfile:', showPwdProfile);
+    console.log('currentPwdData:', currentPwdData);
+    if (showPwdProfile && currentPwdData) {
+      return (
+        <div className="flex-1 bg-gray-50 p-6">
+          <button
+            onClick={handleBackFromPwdProfile}
+            className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" /> {/* Using Lucide icon */}
+            Back
+          </button>
+          <PWD_Profile userData={currentPwdData} />
+        </div>
+      );
+    }
+
+    // Otherwise, render content based on currentPage and userRole
     switch (currentPage) {
       case 'dashboard':
-        if (userRole === 'pwd'||userRole === 'guardian') {
+        if (userRole === 'pwd' || userRole === 'guardian') {
           return <PWD_Dashboard userData={userData} />;
         } else if (userRole === 'medical_officer') {
-          return <DoctorsDashboard userData={userData} />;
+          // Pass the handler down to DoctorsDashboard
+          return <DoctorsDashboard userData={userData} onShowPwdProfile={handleShowPwdProfile} />;
         } else if (userRole === 'county_director') {
           return <Health_Officers_Dashboard userData={userData} />;
         }
-        // Fallback or default dashboard if role doesn't match
         return <DashboardContent userData={userData} />;
 
       case 'assessments':
         if (userRole === 'pwd') {
           return <PWDAssesmentsPage userData={userData} />;
         } else if (userRole === 'medical_officer') {
-          return <DoctorsAssesment userData={userData} />;
+          // Pass the handler down to DoctorsAssesment
+          return <DoctorsAssesment userData={userData} onShowPwdProfile={handleShowPwdProfile} />;
         } else if (userRole === 'health_officer') {
           return <HealthOfficerAssesments userData={userData} />;
         }
-        // Fallback or default assessments if role doesn't match
         return <AssessmentsContent userData={userData} />;
 
       case 'documents':
-        // Documents content might be shared or have minor variations
         return <DocumentsContent userData={userData} />;
-        
+
       default:
-        // Fallback for any unknown currentPage
         return <DashboardContent userData={userData} />;
     }
   };

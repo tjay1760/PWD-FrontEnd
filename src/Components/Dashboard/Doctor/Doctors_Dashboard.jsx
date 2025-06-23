@@ -1,4 +1,4 @@
-// Components/Dashboard/DashboardContent.jsx
+// Components/Dashboard/Doctor/Doctors_Dashboard.jsx (assuming this is the correct path)
 import React from "react";
 import {
   Calendar,
@@ -13,8 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import DetailsImage from "../../../assets/details-image.png"; // Assuming you have an image for details
-import AppontmentCalender from "../../../assets/appointment-calender.svg"; // Assuming you have an image for appointment calendar
+import DetailsImage from "../../../assets/details-image.png";
+import AppontmentCalender from "../../../assets/appointment-calender.svg";
 import Tickheart from "../../../assets/vuesax-linear-heart-tick.svg";
 import HeartSearch from "../../../assets/vuesax-linear-heart-search.svg";
 import LinearLike from "../../../assets/vuesax-linear-like.svg";
@@ -22,14 +22,11 @@ import LinearLovely from "../../../assets/vuesax-linear-lovely.svg";
 import AssessmentsTable from "../AssesmentsTable";
 import CalendarView from "../CalendarView";
 import { DisabilityAssessmentChart } from "./Doctors_chart";
-const DoctorsDashboard = ({ userData }) => {
-  
 
-
-
-  // Destructure user data for display
+// Accept onShowPwdProfile as a prop
+const DoctorsDashboard = ({ userData, onShowPwdProfile }) => {
   const userName = userData ? `${userData.fullName}` : "Guest";
-  console.log("User Data dashboard:", userData.role); // For debugging purposes
+
   return (
     <div className="flex-1 bg-gray-50 p-6 ">
       {/* Header */}
@@ -161,8 +158,7 @@ const DoctorsDashboard = ({ userData }) => {
               <div className="text-sm text-gray-600">FLAGGED FOR REVIEW</div>
               <div className="text-xs text-blue-500 mt-1">
                 0 since last week
-              </div>{" "}
-              {/* Changed to blue-500 for consistency with original */}
+              </div>
             </div>
             <div className="w-12 h-12 rounded-full flex items-center justify-center">
               <img
@@ -197,7 +193,7 @@ const DoctorsDashboard = ({ userData }) => {
       {/* Bottom Section */}
       <div className="grid grid-cols-2 gap-6">
         {/* Patients Queue */}
-        <AssessmentsTable />
+        <AssessmentsTable onShowPwdProfile={onShowPwdProfile} /> {/* Pass the prop here */}
 
         {/* Calendar */}
         <CalendarView />
