@@ -4,6 +4,8 @@ import PWD_Profile from '../PWD/PWD_Profile';
 import { Button } from '../../../components/ui/button';
 import { HeartPlus } from 'lucide-react'; // Assuming you have a HeartPlus icon in lucide-react
 import toast from 'react-hot-toast';
+// import VisualImpairements from '../DisabilityForms/VisualImpairements';
+import SpeechImparements from '../DisabilityForms/SpeechImparements';
 const DoctorsAssesment = () => {
     const handleClick = () => {
 
@@ -25,9 +27,11 @@ const DoctorsAssesment = () => {
         <HeartPlus />
       <span>ADD APPOINTMENT</span>
     </Button>
-    <div className="tables flex gap-6 border rounded-lg p-6">
-        <PWD_Profile />
+    <div className="forms">
+  <SpeechImparements />
     </div>
+   
+   
         </div>
   )
 }
