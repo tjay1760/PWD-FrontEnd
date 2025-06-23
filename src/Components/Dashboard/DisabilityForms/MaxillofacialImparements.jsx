@@ -37,7 +37,7 @@ const MaxillofacialImparements = () => {
 
         {/* Title */}
         <h2 className="text-xl font-semibold text-blue-700 text-center mb-8">
-          ASSESSMENT FORM FOR MENTAL/ INTELLECTUAL/ AUTISM SPECTRUM DISORDERS
+          ASSESSMENT FOR MAXILLOFACIAL DISABILITIES
         </h2>
 
         {/* Health Facility and Date Section */}
