@@ -7,7 +7,8 @@ import toast from 'react-hot-toast';
 // import VisualImpairements from '../DisabilityForms/VisualImpairements';
 // import SpeechImparements from '../DisabilityForms/SpeechImparements';
 // import PhysicalDisability from '../DisabilityForms/PhysicalDisability';
-import MentalImparements from '../DisabilityForms/MentalImparements';
+// import MentalImparements from '../DisabilityForms/MentalImparements';
+import MaxillofacialImparements from '../DisabilityForms/MaxillofacialImparements';
 const DoctorsAssesment = () => {
     const handleClick = () => {
 
@@ -30,7 +31,7 @@ const DoctorsAssesment = () => {
       <span>ADD APPOINTMENT</span>
     </Button>
     <div className="forms">
-  <MentalImparements />
+  <MaxillofacialImparements />
     </div>
    
    
