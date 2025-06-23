@@ -2,31 +2,36 @@ import React from "react";
 import { format } from "date-fns"; // For date formatting
 
 const PWD_Profile = ({ userData }) => { // Accept userData as props
-  if (!userData) {
+  console.log("PWD Profile Data:", userData);
+  if (!userData || !userData.user) { // Check for userData.user existence
     return <div className="text-center p-8 text-gray-600">No PWD data available.</div>;
   }
 
-  // Destructure data from userData for easier access
-  // Adjust these paths based on your actual API response structure for a User
+  // Destructure data directly from userData.user based on the new payload
   const {
-    _id, // The user's ID itself
-    full_name,
+    id, // Renamed from _id
     email,
+    phone,
+    nationalId, // Renamed from national_id
     dob, // Date of birth
-    location,
-    national_id,
+    fullName, // Renamed from full_name
     gender,
-    created_at, // Or 'createdAt' if your backend uses that
-    marital_status,
-    next_of_kin,
-  } = userData;
+    county, // Directly available
+    subCounty, // Directly available
+    // marital_status and next_of_kin are not in this payload,
+    // so we'll remove them or default them to 'N/A' if they might come from other user types.
+    // For now, let's remove them from destructuring and update their display.
+  } = userData.user;
 
-  const fullName = `${full_name?.first || ''} ${full_name?.middle ? full_name.middle + ' ' : ''}${full_name?.last || ''}`.trim();
+  // No need to concatenate full name as it's already `fullName`
   const displayDob = dob ? format(new Date(dob), 'dd MMMM yyyy') : 'N/A';
-  const displayRegisteredOn = created_at ? format(new Date(created_at), 'dd MMMM yyyy') : 'N/A';
+  // The `created_at` field is no longer in the provided payload.
+  // If you still need a "Registered on" date, you'll need to get it from another source
+  // or decide to remove that display item. For now, I'll default it to N/A.
+  const displayRegisteredOn = 'N/A'; // Or remove this line and the corresponding DOM element
 
   return (
-    <div className="flex border justify-between items-start w-full p-10 gap-10"> {/* Changed items-center to items-start */}
+    <div className="flex border justify-between items-start w-full p-10 gap-10">
       <div className="flex flex-col gap-5 w-2/3">
         <div className="w-full mx-auto bg-white rounded-lg shadow-sm p-4 flex items-center justify-between border border-gray-200">
           <div className="flex items-center space-x-4">
@@ -52,41 +57,45 @@ const PWD_Profile = ({ userData }) => { // Accept userData as props
               <p className="font-semibold text-gray-800">{displayDob}</p>
             </div>
             <div>
-              <p className="mb-1">Location</p>
-              <p className="font-semibold text-gray-800">{location?.county || 'N/A'}</p>
+              <p className="mb-1">County</p>
+              <p className="font-semibold text-gray-800">{county || 'N/A'}</p> {/* Changed from location?.county */}
             </div>
             <div>
-              <p className="mb-1">Sub-Location</p>
-              <p className="font-semibold text-gray-800">{location?.sub_county || 'N/A'}</p>
+              <p className="mb-1">Sub-County</p>
+              <p className="font-semibold text-gray-800">{subCounty || 'N/A'}</p> {/* Changed from location?.sub_county */}
             </div>
             <div>
               <p className="mb-1">National ID</p>
-              <p className="font-semibold text-gray-800">{national_id || 'N/A'}</p>
+              <p className="font-semibold text-gray-800">{nationalId || 'N/A'}</p> {/* Changed from national_id */}
             </div>
             <div>
               <p className="mb-1">Gender</p>
               <p className="font-semibold text-gray-800">{gender || 'N/A'}</p>
             </div>
 
+            {/* If 'Registered on' is always 'N/A' with this payload, consider removing the div */}
             <div>
               <p className="mb-1">Registered on</p>
               <p className="font-semibold text-gray-800">{displayRegisteredOn}</p>
             </div>
+            {/* marital_status and next_of_kin are not in the new payload.
+                If they are truly gone, you should remove these divs entirely.
+                If they might appear for other user roles, keep them but be aware they'll be 'N/A' for this PWD payload. */}
             <div>
               <p className="mb-1">Marital Status</p>
-              <p className="font-semibold text-gray-800">{marital_status || 'N/A'}</p>
+              <p className="font-semibold text-gray-800">{'N/A'}</p> {/* Updated as it's not in payload */}
             </div>
             <div>
               <p className="mb-1">Next of KIN</p>
-              <p className="font-semibold text-gray-800">{next_of_kin?.full_name || 'N/A'}</p>
+              <p className="font-semibold text-gray-800">{'N/A'}</p> {/* Updated as it's not in payload */}
             </div>
             <div>
               <p className="mb-1">Next of KIN relationship</p>
-              <p className="font-semibold text-gray-800">{next_of_kin?.relationship || 'N/A'}</p>
+              <p className="font-semibold text-gray-800">{'N/A'}</p> {/* Updated as it's not in payload */}
             </div>
             <div>
               <p className="mb-1">Next of KIN Contacts</p>
-              <p className="font-semibold text-gray-800">{next_of_kin?.phone || 'N/A'}</p>
+              <p className="font-semibold text-gray-800">{'N/A'}</p> {/* Updated as it's not in payload */}
             </div>
           </div>
         </div>
@@ -151,7 +160,7 @@ const PWD_Profile = ({ userData }) => { // Accept userData as props
       </div>
 
       {/* Medical Records Section (kept as is) */}
-      <div className="uploads w-1/3"> {/* Adjusted width */}
+      <div className="uploads w-1/3">
         <div className="max-w-md mx-auto border rounded-lg p-4 shadow-sm">
           <div className="flex justify-between items-center mb-3">
             <h2 className="text-green-900 font-semibold text-lg">Medical Records</h2>
