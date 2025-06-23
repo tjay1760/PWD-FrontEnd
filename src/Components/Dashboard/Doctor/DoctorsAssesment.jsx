@@ -5,7 +5,8 @@ import { Button } from '../../../components/ui/button';
 import { HeartPlus } from 'lucide-react'; // Assuming you have a HeartPlus icon in lucide-react
 import toast from 'react-hot-toast';
 // import VisualImpairements from '../DisabilityForms/VisualImpairements';
-import SpeechImparements from '../DisabilityForms/SpeechImparements';
+// import SpeechImparements from '../DisabilityForms/SpeechImparements';
+import PhysicalDisability from '../DisabilityForms/PhysicalDisability';
 const DoctorsAssesment = () => {
     const handleClick = () => {
 
@@ -28,7 +29,7 @@ const DoctorsAssesment = () => {
       <span>ADD APPOINTMENT</span>
     </Button>
     <div className="forms">
-  <SpeechImparements />
+  <PhysicalDisability />
     </div>
    
    
