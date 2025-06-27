@@ -1,34 +1,49 @@
-import React from "react";
-import { format } from "date-fns"; // For date formatting
+import React, { useState } from "react";
+import { format } from "date-fns";
+import FormToggler from "../DisabilityForms/FormToggler"; // Ensure this path is correct
 
-const PWD_Profile = ({ userData }) => { // Accept userData as props
+const PWD_Profile = ({ userData }) => {
+  const [showFormPopup, setShowFormPopup] = useState(false);
+  const [selectedDisabilityCategory, setSelectedDisabilityCategory] = useState("");
+
   console.log("PWD Profile Data:", userData);
-  if (!userData || !userData.user) { // Check for userData.user existence
+  if (!userData || !userData.user) {
     return <div className="text-center p-8 text-gray-600">No PWD data available.</div>;
   }
 
-  // Destructure data directly from userData.user based on the new payload
   const {
-    id, // Renamed from _id
+    id,
     email,
     phone,
-    nationalId, // Renamed from national_id
-    dob, // Date of birth
-    fullName, // Renamed from full_name
+    nationalId,
+    dob,
+    fullName,
     gender,
-    county, // Directly available
-    subCounty, // Directly available
-    // marital_status and next_of_kin are not in this payload,
-    // so we'll remove them or default them to 'N/A' if they might come from other user types.
-    // For now, let's remove them from destructuring and update their display.
+    county,
+    subCounty,
   } = userData.user;
 
-  // No need to concatenate full name as it's already `fullName`
-  const displayDob = dob ? format(new Date(dob), 'dd MMMM yyyy') : 'N/A';
-  // The `created_at` field is no longer in the provided payload.
-  // If you still need a "Registered on" date, you'll need to get it from another source
-  // or decide to remove that display item. For now, I'll default it to N/A.
-  const displayRegisteredOn = 'N/A'; // Or remove this line and the corresponding DOM element
+  const displayDob = dob ? format(new Date(dob), 'dd MMMM yyyy') : 'N/A'; // Added yyyy for completeness
+  const displayRegisteredOn = 'N/A';
+
+  const handleCategoryChange = (event) => {
+    setSelectedDisabilityCategory(event.target.value);
+    // You might want to automatically open the popup here, or wait for button click
+    // setShowFormPopup(true); // Uncomment if you want it to open immediately on selection
+  };
+
+  const handleDisabilityDetailsClick = () => {
+    if (selectedDisabilityCategory) {
+      setShowFormPopup(true);
+    } else {
+      alert("Please select a disability category first.");
+    }
+  };
+
+  const closeFormPopup = () => {
+    setShowFormPopup(false);
+    setSelectedDisabilityCategory(""); // Reset selected category when closing
+  };
 
   return (
     <div className="flex border justify-between items-start w-full p-10 gap-10">
@@ -58,49 +73,43 @@ const PWD_Profile = ({ userData }) => { // Accept userData as props
             </div>
             <div>
               <p className="mb-1">County</p>
-              <p className="font-semibold text-gray-800">{county || 'N/A'}</p> {/* Changed from location?.county */}
+              <p className="font-semibold text-gray-800">{county || 'N/A'}</p>
             </div>
             <div>
               <p className="mb-1">Sub-County</p>
-              <p className="font-semibold text-gray-800">{subCounty || 'N/A'}</p> {/* Changed from location?.sub_county */}
+              <p className="font-semibold text-gray-800">{subCounty || 'N/A'}</p>
             </div>
             <div>
               <p className="mb-1">National ID</p>
-              <p className="font-semibold text-gray-800">{nationalId || 'N/A'}</p> {/* Changed from national_id */}
+              <p className="font-semibold text-gray-800">{nationalId || 'N/A'}</p>
             </div>
             <div>
               <p className="mb-1">Gender</p>
               <p className="font-semibold text-gray-800">{gender || 'N/A'}</p>
             </div>
-
-            {/* If 'Registered on' is always 'N/A' with this payload, consider removing the div */}
             <div>
               <p className="mb-1">Registered on</p>
               <p className="font-semibold text-gray-800">{displayRegisteredOn}</p>
             </div>
-            {/* marital_status and next_of_kin are not in the new payload.
-                If they are truly gone, you should remove these divs entirely.
-                If they might appear for other user roles, keep them but be aware they'll be 'N/A' for this PWD payload. */}
             <div>
               <p className="mb-1">Marital Status</p>
-              <p className="font-semibold text-gray-800">{'N/A'}</p> {/* Updated as it's not in payload */}
+              <p className="font-semibold text-gray-800">{'N/A'}</p>
             </div>
             <div>
               <p className="mb-1">Next of KIN</p>
-              <p className="font-semibold text-gray-800">{'N/A'}</p> {/* Updated as it's not in payload */}
+              <p className="font-semibold text-gray-800">{'N/A'}</p>
             </div>
             <div>
               <p className="mb-1">Next of KIN relationship</p>
-              <p className="font-semibold text-gray-800">{'N/A'}</p> {/* Updated as it's not in payload */}
+              <p className="font-semibold text-gray-800">{'N/A'}</p>
             </div>
             <div>
               <p className="mb-1">Next of KIN Contacts</p>
-              <p className="font-semibold text-gray-800">{'N/A'}</p> {/* Updated as it's not in payload */}
+              <p className="font-semibold text-gray-800">{'N/A'}</p>
             </div>
           </div>
         </div>
 
-        {/* Conduct Assessment Section (kept as is, but might need dynamic values) */}
         <div className="w-full mx-auto border border-gray-200 rounded-lg p-6 bg-white space-y-6">
           <div className="flex items-center space-x-2">
             <h2 className="text-green-900 font-semibold text-lg">
@@ -111,11 +120,16 @@ const PWD_Profile = ({ userData }) => { // Accept userData as props
             </span>
           </div>
           <div>
-            <label className="block text-xs font-bold text-blue-900 uppercase mb-1">
+            <label htmlFor="disabilityCategory" className="block text-xs font-bold text-blue-900 uppercase mb-1">
               Category
             </label>
-            <select className="w-full border border-blue-200 rounded-md p-3 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500">
-              <option disabled selected>
+            <select
+              id="disabilityCategory"
+              className="w-full border border-blue-200 rounded-md p-3 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={selectedDisabilityCategory}
+              onChange={handleCategoryChange}
+            >
+              <option value="" disabled>
                 Disability category*
               </option>
               <option value="VISUAL IMPAIRMENTS">VISUAL IMPAIRMENTS</option>
@@ -138,7 +152,10 @@ const PWD_Profile = ({ userData }) => { // Accept userData as props
             </select>
           </div>
           <div className="w-11/12 border mx-auto">
-            <button className="w-full flex items-center justify-center space-x-2 border border-green-700 text-green-700 font-semibold text-sm px-5 py-2 rounded-full hover:bg-green-50">
+            <button
+              className="w-full flex items-center justify-center space-x-2 border border-green-700 text-green-700 font-semibold text-sm px-5 py-2 rounded-full hover:bg-green-50"
+              onClick={handleDisabilityDetailsClick}
+            >
               <span>Disability Details</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -159,7 +176,6 @@ const PWD_Profile = ({ userData }) => { // Accept userData as props
         </div>
       </div>
 
-      {/* Medical Records Section (kept as is) */}
       <div className="uploads w-1/3">
         <div className="max-w-md mx-auto border rounded-lg p-4 shadow-sm">
           <div className="flex justify-between items-center mb-3">
@@ -178,7 +194,6 @@ const PWD_Profile = ({ userData }) => { // Accept userData as props
               <span>Document Name</span>
             </div>
             <div className="divide-y">
-              {/* These are static placeholders, you'd dynamically render medical records here */}
               <div className="flex items-center gap-2 p-2 text-sm">
                 <input type="checkbox" />
                 <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,6 +237,23 @@ const PWD_Profile = ({ userData }) => { // Accept userData as props
           </div>
         </div>
       </div>
+
+      {showFormPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-xl relative w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={closeFormPopup}
+              className="absolute top-3 right-3 text-gray-600 hover:text-gray-900 text-2xl font-bold"
+            >
+              &times;
+            </button>
+            <h2 className="text-2xl font-semibold mb-4 text-green-900">
+              Disability Assessment Form - {selectedDisabilityCategory}
+            </h2>
+            <FormToggler selectedCategory={selectedDisabilityCategory} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
