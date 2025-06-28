@@ -15,10 +15,12 @@ import authService from '../authService'; // Adjust the path as necessary
 import PWD_Dashboard from './PWD/PWD-Dashboard'; // For PWD role dashboard
 import DoctorsDashboard from './Doctor/Doctors_Dashboard'; // For Doctor role dashboard
 import Health_Officers_Dashboard from './Health_Officer/Health_Officers_Dashboard'; // For Health Officer role dashboard
+import GuardianDashboard from './Guardian/GuardianDashboard'; // For Guardian role dashboard
 
 import PWDAssesmentsPage from './PWD/PWDAssesmentsPage'; // For PWD role assessments
 import DoctorsAssesment from './Doctor/DoctorsAssesment'; // For Doctor role assessments
 import HealthOfficerAssesments from './Health_Officer/HealthOfficerAssesments'; // For Health Officer role assessments
+import GuardianAssessment from './Guardian/GuardianAssesment';
 
 // Import generic content components that might be shared or placeholders
 // Assuming DashboardContent, AssessmentsContent, DocumentsContent are generic or default
@@ -159,8 +161,6 @@ const UserDashboard = ({ userData, onAppLogout }) => {
 
 
   const renderContent = () => {
-    console.log('showPwdProfile:', showPwdProfile);
-    console.log('currentPwdData:', currentPwdData);
     if (showPwdProfile && currentPwdData) {
       return (
         <div className="flex-1 bg-gray-50 p-6">
@@ -179,8 +179,10 @@ const UserDashboard = ({ userData, onAppLogout }) => {
     // Otherwise, render content based on currentPage and userRole
     switch (currentPage) {
       case 'dashboard':
-        if (userRole === 'pwd' || userRole === 'guardian') {
+        if (userRole === 'pwd') {
           return <PWD_Dashboard userData={userData} />;
+        } else if (userRole === 'guardian') {
+          return <GuardianDashboard userData={userData} />;
         } else if (userRole === 'medical_officer') {
           // Pass the handler down to DoctorsDashboard
           return <DoctorsDashboard userData={userData} onShowPwdProfile={handleShowPwdProfile} />;
@@ -192,7 +194,12 @@ const UserDashboard = ({ userData, onAppLogout }) => {
       case 'assessments':
         if (userRole === 'pwd') {
           return <PWDAssesmentsPage userData={userData} />;
-        } else if (userRole === 'medical_officer') {
+        }
+        else if (userRole === 'guardian') {
+          return <GuardianAssessment userData={userData} />;
+        }
+        
+        else if (userRole === 'medical_officer') {
           // Pass the handler down to DoctorsAssesment
           return <DoctorsAssesment userData={userData} onShowPwdProfile={handleShowPwdProfile} />;
         } else if (userRole === 'health_officer') {
