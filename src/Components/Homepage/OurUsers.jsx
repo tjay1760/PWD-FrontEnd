@@ -22,7 +22,7 @@ const OurUsers = () => {
         <div className="verification">
              <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-inter">
       {/* Card-like container for the form content */}
-      <div className="p-6 sm:p-8 md:p-10 lg:p-12 w-2/3 text-center">
+      <div className="p-6 sm:p-8 md:p-10 lg:p-12 w-2/3 text-center" id='verify'>
         {/* Title */}
         <h1 className="text-6xl sm:text-4xl lg:text-5xl font-extrabold font-serif text-blue-800 mb-4 sm:mb-6">
           Verify a Disability Certificate

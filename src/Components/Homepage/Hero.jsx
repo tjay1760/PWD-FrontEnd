@@ -1,6 +1,6 @@
 import React from "react";
 import HeroImg from "../../assets/Form Image.png";
-const Hero = () => {
+const Hero = ({onRegisterClick, onLoginClick}) => {
   return (
     <div className="flex gap-10 justify-between hero-container px-36" id="home">
       <div className="infos my-auto max-w-fit">
@@ -12,15 +12,17 @@ const Hero = () => {
           with Disability in Kenya
         </p>
         <div className="buttons flex flex-col gap-4 mt-4">
-            <button className="bg-blue-800 text-white py-2 px-4 rounded-3xl max-w-fit">
+            <button className="bg-blue-800 text-white py-2 px-4 rounded-3xl max-w-fit"
+            onClick={onRegisterClick}>
             Register Now as a PWD/Guardian
         </button>
-        <button className="bg-green-500 text-white py-2 px-4 rounded-3xl max-w-fit">
+        <button className="bg-green-500 text-white py-2 px-4 rounded-3xl max-w-fit"
+        onClick={onLoginClick}>
           Medical and County Officer Login
         </button>
-        <button className="bg-white border-2 border-black text-black py-2 px-4 rounded-3xl max-w-fit">
+        <a className="bg-white border-2 border-black text-black py-2 px-4 rounded-3xl max-w-fit" href="#verify">
           Verify Certificate
-        </button>
+        </a>
       </div>
 
         </div>

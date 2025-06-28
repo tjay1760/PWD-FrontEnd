@@ -7,11 +7,11 @@ import Steps from "./Steps";
 import Contact from "./Contact";
 import Footer from "./Footer";
 
-const HomePage = () => {
+const HomePage = ({onLoginClick, onRegisterClick}) => {
   return (
     <div>
       <Navigation />
-      <Hero />
+      <Hero onLoginClick={onLoginClick} onRegisterClick={onRegisterClick} />
       <About />
       <Steps />
         <OurUsers />
