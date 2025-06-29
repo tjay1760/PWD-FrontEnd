@@ -11,15 +11,15 @@ const Steps = () => {
         </div>
         <div className="div">
             <h1 className='font-bold text-6xl text-green-600'>02.</h1>
-            <p className='font-bold text-xl'>Fill in the required details and submit</p>
+            <p className='font-bold text-xl'> Visit a gazetted health facility for medical assessment</p>
         </div>
         <div className="div">
             <h1 className='font-bold text-6xl text-green-600'>03.</h1>
-            <p className='font-bold text-xl'>Receive confirmation and follow up as needed</p>
+            <p className='font-bold text-xl'>Receive and download your approved medical report</p>
         </div>
         <div className="div">
             <h1 className='font-bold text-6xl text-green-600'>04.</h1>
-            <p className='font-bold text-xl'>Access services and benefits as a registered PWD</p>
+            <p className='font-bold text-xl'>Use your medical report to apply for the disability certificate on e-Citizen</p>
         </div>
     </div>
     </div>
