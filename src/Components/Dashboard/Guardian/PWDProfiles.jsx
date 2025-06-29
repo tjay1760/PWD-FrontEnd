@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Import useEffect
 import AddMinorsForm from './AddMinorsForm';
 import {
   Table,
@@ -18,31 +18,32 @@ import {
   Menu,
   MenuItem,
   InputAdornment,
-  Modal// Import InputAdornment for search icon
+  Modal
 } from '@mui/material';
 import {
-  PersonAddAltOutlined, // Icon for "Add a minor"
-  ArrowUpward,        // Up arrow for sorting
-  ArrowDownward,      // Down arrow for sorting
-  MoreVert,           // Vertical dots for context menu
-  Search,             // Search icon
+  PersonAddAltOutlined,
+  ArrowUpward,
+  ArrowDownward,
+  MoreVert,
+  Search,
 } from '@mui/icons-material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
-// Define a custom theme to adjust colors and typography if needed
+const API_BASE_URL = 'http://localhost:5000/api/users/guardians/my-pwds'; // Update with your actual API endpoint
+
 const theme = createTheme({
   typography: {
-    fontFamily: 'Inter, sans-serif', // Ensure Inter font is used
+    fontFamily: 'Inter, sans-serif',
   },
   palette: {
     primary: {
-      main: '#1a73e8', // A blue color
+      main: '#1a73e8',
     },
     success: {
-      main: '#4CAF50', // Green for Scheduled
+      main: '#4CAF50',
     },
     warning: {
-      main: '#FFC107', // Orange for Pending
+      main: '#FFC107',
     },
     text: {
       primary: '#333',
@@ -53,15 +54,15 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: '9999px', // Full rounded for buttons
-          textTransform: 'none', // Prevent uppercase
+          borderRadius: '9999px',
+          textTransform: 'none',
         },
       },
     },
     MuiTextField: {
       styleOverrides: {
         root: {
-          borderRadius: '8px', // Rounded text fields
+          borderRadius: '8px',
           '& .MuiOutlinedInput-root': {
             borderRadius: '8px',
           },
@@ -71,58 +72,92 @@ const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: '8px', // Rounded corners for Paper (table container)
+          borderRadius: '8px',
         },
       },
     },
   },
 });
 
-// Sample Data for the table
+// Helper function to structure data for the table
 function createData(id, name, location, facility, date, status, avatarUrl) {
   return { id, name, location, facility, date, status, avatarUrl };
 }
 
-const initialRows = [
-  createData(
-    1,
-    'Name Surname',
-    'Nairobi Embakasi East',
-    'Mama Lucy Kibaki',
-    '26 Jul 2025',
-    'Scheduled',
-    'https://placehold.co/40x40/FF5733/FFFFFF?text=NS'
-  ),
-  createData(
-    2,
-    'Name Surname',
-    'Kiambu Kikuyu',
-    'Kikuyu Hospital',
-    '31 Aug 2025',
-    'Pending',
-    'https://placehold.co/40x40/33FF57/FFFFFF?text=NS'
-  ),
-  createData(
-    3,
-    'Name Surname',
-    'Nairobi Dagoretti',
-    'Dagoretti Referral',
-    '5 Sep 2025',
-    'Pending',
-    'https://placehold.co/40x40/3357FF/FFFFFF?text=NS'
-  ),
-  // Add more sample data as needed
-];
+// Function to get the access token from local storage
+const getToken = () => {
+  return localStorage.getItem('accessToken');
+};
 
 function PwdProfilesTable() {
-  const [rows, setRows] = useState(initialRows);
-  const [order, setOrder] = useState('asc'); // 'asc' or 'desc'
-  const [orderBy, setOrderBy] = useState('name'); // Column to sort by
-  const [selected, setSelected] = useState([]); // Selected checkboxes
+  // Initialize rows as an empty array or `null` until data is fetched
+  const [rows, setRows] = useState([]);
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('name');
+  const [selected, setSelected] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [anchorEl, setAnchorEl] = useState(null); // For context menu
-  const [selectedRowId, setSelectedRowId] = useState(null); // For context menu
-    const [showAddMinorForm, setShowAddMinorForm] = useState(false); // For Add Minor Form modal
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedRowId, setSelectedRowId] = useState(null);
+  const [showAddMinorForm, setShowAddMinorForm] = useState(false);
+  const [loading, setLoading] = useState(true); // State to manage loading status
+  const [error, setError] = useState(null); // State to manage fetch errors
+
+  // --- useEffect to fetch data on component mount ---
+  useEffect(() => {
+    const getGuardiansPwds = async () => {
+      setLoading(true);
+      setError(null);
+      const token = getToken();
+
+      if (!token) {
+        console.error('No authentication token found.');
+        setError('Authentication required. Please log in.');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(API_BASE_URL, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text(); // Get raw text for more info
+          throw new Error(`Failed to fetch data: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('Fetched data:', data); // This will display the data in the console
+
+        // Assuming data is an array of PWD objects
+        // You'll need to map your API response data to the `createData` format
+        const formattedData = data.pwds.map((item, index) =>
+          createData(
+            item._id || `temp-id-${index}`, // Use unique ID from backend if available, or a temp one
+            `${item.fullName}`,
+            item.location || 'N/A', // Assuming these fields exist in your API response
+            item.facility || 'N/A',
+            new Date(item.dateOfBirth).toLocaleDateString(), // Format date for display
+            item.status || 'Active', // Assuming a status field
+            item.avatarUrl || `https://placehold.co/40x40/CCCCCC/FFFFFF?text=${item.firstName ? item.firstName[0] : ''}${item.lastName ? item.lastName[0] : ''}` // Default avatar
+          )
+        );
+        setRows(formattedData);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError(`Error fetching data: ${err.message}`);
+        setRows([]); // Clear rows on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getGuardiansPwds(); // Call the async function
+  }, []); // Empty dependency array means this runs once on mount
 
   // Handle request for sorting
   const handleRequestSort = (property) => {
@@ -230,17 +265,60 @@ function PwdProfilesTable() {
     console.log("Submitting new minor:", minorData);
     // In a real app, you would add this minor to your data source
     // For now, let's just add it to the local state for demonstration
-    const newId = rows.length > 0 ? Math.max(...rows.map(r => r.id)) + 1 : 1;
-    const newMinor = createData(
-      newId,
-      `${minorData.firstName} ${minorData.lastName}`,
-      'N/A (New Minor)', // Default location for new minor
-      'N/A (New Minor)', // Default facility for new minor
-      minorData.dateOfBirth,
-      'Pending', // New minors might start as pending
-      `https://placehold.co/40x40/A9A9A9/FFFFFF?text=${minorData.firstName[0]}${minorData.lastName[0]}`
-    );
-    setRows(prevRows => [...prevRows, newMinor]);
+    // Re-fetch data from the server to ensure consistency
+    // A more advanced approach might involve optimistically updating the UI
+    // and then re-fetching or receiving a confirmation from the server.
+    // For simplicity, we'll re-fetch all data.
+    const getGuardiansPwds = async () => {
+      setLoading(true);
+      setError(null);
+      const token = getToken();
+
+      if (!token) {
+        console.error('No authentication token found.');
+        setError('Authentication required. Please log in.');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(API_BASE_URL, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to fetch data: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('Refreshed data:', data);
+
+        const formattedData = data.map((item, index) =>
+          createData(
+            item._id || `temp-id-${index}`,
+            `${item.firstName} ${item.lastName}`,
+            item.location || 'N/A',
+            item.facility || 'N/A',
+            new Date(item.dateOfBirth).toLocaleDateString(),
+            item.status || 'Active',
+            item.avatarUrl || `https://placehold.co/40x40/CCCCCC/FFFFFF?text=${item.firstName ? item.firstName[0] : ''}${item.lastName ? item.lastName[0] : ''}`
+          )
+        );
+        setRows(formattedData);
+      } catch (err) {
+        console.error('Error refreshing data:', err);
+        setError(`Error refreshing data: ${err.message}`);
+        setRows([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    getGuardiansPwds(); // Call to refresh data
     handleCloseAddMinorForm(); // Close modal after submission
   };
 
@@ -262,7 +340,7 @@ function PwdProfilesTable() {
               variant="contained"
               color="success"
               startIcon={<PersonAddAltOutlined />}
-                onClick={handleOpenAddMinorForm}
+              onClick={handleOpenAddMinorForm}
               className="mt-4 sm:mt-0 px-6 py-2 shadow-md hover:shadow-lg transition-shadow duration-300"
             >
               Add a minor
@@ -287,150 +365,164 @@ function PwdProfilesTable() {
               className="bg-gray-50 rounded-lg"
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: '9999px', // Full rounded like the image
-                  backgroundColor: '#f9fafb', // Light grey background
-                  paddingLeft: '14px', // Adjust padding if needed
+                  borderRadius: '9999px',
+                  backgroundColor: '#f9fafb',
+                  paddingLeft: '14px',
                 },
               }}
             />
           </Box>
 
-          {/* Table Container */}
-          <TableContainer component={Paper} className="rounded-lg shadow-md">
-            <Table aria-label="PWD profiles table">
-              <TableHead className="bg-gray-50">
-                <TableRow>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      onChange={handleSelectAllClick}
-                      checked={selected.length === rows.length && rows.length > 0}
-                      indeterminate={selected.length > 0 && selected.length < rows.length}
-                    />
-                  </TableCell>
-                  <TableCell onClick={() => handleRequestSort('name')} className="cursor-pointer">
-                    <Box className="flex items-center">
-                      <Typography variant="body2" className="font-semibold text-gray-700">Name</Typography>
-                      {orderBy === 'name' && (
-                        <span className="ml-1">
-                          {order === 'asc' ? <ArrowUpward fontSize="small" /> : <ArrowDownward fontSize="small" />}
-                        </span>
-                      )}
-                    </Box>
-                  </TableCell>
-                  <TableCell onClick={() => handleRequestSort('location')} className="cursor-pointer">
-                    <Box className="flex items-center">
-                      <Typography variant="body2" className="font-semibold text-gray-700">Location</Typography>
-                      {orderBy === 'location' && (
-                        <span className="ml-1">
-                          {order === 'asc' ? <ArrowUpward fontSize="small" /> : <ArrowDownward fontSize="small" />}
-                        </span>
-                      )}
-                    </Box>
-                  </TableCell>
-                  <TableCell onClick={() => handleRequestSort('facility')} className="cursor-pointer">
-                    <Box className="flex items-center">
-                      <Typography variant="body2" className="font-semibold text-gray-700">Facility</Typography>
-                      {orderBy === 'facility' && (
-                        <span className="ml-1">
-                          {order === 'asc' ? <ArrowUpward fontSize="small" /> : <ArrowDownward fontSize="small" />}
-                        </span>
-                      )}
-                    </Box>
-                  </TableCell>
-                  <TableCell align="center">
-                    <Typography variant="body2" className="font-semibold text-gray-700">Status</Typography>
-                  </TableCell>
-                  <TableCell align="right"></TableCell> {/* For the three dots menu */}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {sortedRows.map((row) => {
-                  const isItemSelected = isSelected(row.id);
-                  const statusColorClass = row.status === 'Scheduled' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+          {/* Conditional rendering for loading, error, and no data */}
+          {loading ? (
+            <Typography variant="h6" className="text-center text-gray-600 py-8">
+              Loading PWD profiles...
+            </Typography>
+          ) : error ? (
+            <Typography variant="h6" color="error" className="text-center py-8">
+              {error}
+            </Typography>
+          ) : rows.length === 0 ? (
+            <Typography variant="h6" className="text-center text-gray-600 py-8">
+              No PWD profiles found. Add a minor to get started!
+            </Typography>
+          ) : (
+            <TableContainer component={Paper} className="rounded-lg shadow-md">
+              <Table aria-label="PWD profiles table">
+                <TableHead className="bg-gray-50">
+                  <TableRow>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        onChange={handleSelectAllClick}
+                        checked={selected.length === rows.length && rows.length > 0}
+                        indeterminate={selected.length > 0 && selected.length < rows.length}
+                      />
+                    </TableCell>
+                    <TableCell onClick={() => handleRequestSort('name')} className="cursor-pointer">
+                      <Box className="flex items-center">
+                        <Typography variant="body2" className="font-semibold text-gray-700">Name</Typography>
+                        {orderBy === 'name' && (
+                          <span className="ml-1">
+                            {order === 'asc' ? <ArrowUpward fontSize="small" /> : <ArrowDownward fontSize="small" />}
+                          </span>
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell onClick={() => handleRequestSort('location')} className="cursor-pointer">
+                      <Box className="flex items-center">
+                        <Typography variant="body2" className="font-semibold text-gray-700">Location</Typography>
+                        {orderBy === 'location' && (
+                          <span className="ml-1">
+                            {order === 'asc' ? <ArrowUpward fontSize="small" /> : <ArrowDownward fontSize="small" />}
+                          </span>
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell onClick={() => handleRequestSort('facility')} className="cursor-pointer">
+                      <Box className="flex items-center">
+                        <Typography variant="body2" className="font-semibold text-gray-700">Facility</Typography>
+                        {orderBy === 'facility' && (
+                          <span className="ml-1">
+                            {order === 'asc' ? <ArrowUpward fontSize="small" /> : <ArrowDownward fontSize="small" />}
+                          </span>
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Typography variant="body2" className="font-semibold text-gray-700">Status</Typography>
+                    </TableCell>
+                    <TableCell align="right"></TableCell> {/* For the three dots menu */}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {sortedRows.map((row) => {
+                    const isItemSelected = isSelected(row.id);
+                    const statusColorClass = row.status === 'Scheduled' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
 
-                  return (
-                    <TableRow
-                      hover
-                      onClick={(event) => handleClick(event, row.id)}
-                      role="checkbox"
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      key={row.id}
-                      selected={isItemSelected}
-                      className="transition-colors duration-200"
-                    >
-                      <TableCell padding="checkbox">
-                        <Checkbox checked={isItemSelected} />
-                      </TableCell>
-                      <TableCell component="th" scope="row">
-                        <Box className="flex items-center gap-3">
-                          <Avatar src={row.avatarUrl} alt={row.name} className="w-10 h-10" />
-                          <Typography variant="body1" className="font-medium text-gray-900">{row.name}</Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" className="text-gray-700">{row.location}</Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" className="text-gray-700">{row.facility}</Typography>
-                        <Typography variant="caption" className="text-gray-500 block">{row.date}</Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${statusColorClass}`}>
-                          {row.status}
-                        </span>
-                      </TableCell>
-                      <TableCell align="right">
-                        <IconButton
-                          aria-label="more"
-                          aria-controls="long-menu"
-                          aria-haspopup="true"
-                          onClick={(event) => {
-                            event.stopPropagation(); // Prevent row selection when clicking menu
-                            handleMenuClick(event, row.id);
-                          }}
-                        >
-                          <MoreVert />
-                        </IconButton>
-                        <Menu
-                          id="long-menu"
-                          anchorEl={anchorEl}
-                          keepMounted
-                          open={Boolean(anchorEl) && selectedRowId === row.id} // Only open for the clicked row
-                          onClose={handleMenuClose}
-                          PaperProps={{
-                            style: {
-                              maxHeight: 48 * 4.5,
-                              width: '150px',
-                              borderRadius: '8px',
-                            },
-                          }}
-                        >
-                          <MenuItem onClick={() => handleMenuItemClick('View Details')}>
-                            View Details
-                          </MenuItem>
-                          <MenuItem onClick={() => handleMenuItemClick('Edit')}>
-                            Edit
-                          </MenuItem>
-                          <MenuItem onClick={() => handleMenuItemClick('Delete')}>
-                            Delete
-                          </MenuItem>
-                        </Menu>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-                {/* If no rows match search, display a message */}
-                {filteredRows.length === 0 && (
-                    <TableRow>
-                        <TableCell colSpan={6} align="center">
-                            <Typography variant="body1" className="text-gray-500 py-4">No matching profiles found.</Typography>
+                    return (
+                      <TableRow
+                        hover
+                        onClick={(event) => handleClick(event, row.id)}
+                        role="checkbox"
+                        aria-checked={isItemSelected}
+                        tabIndex={-1}
+                        key={row.id}
+                        selected={isItemSelected}
+                        className="transition-colors duration-200"
+                      >
+                        <TableCell padding="checkbox">
+                          <Checkbox checked={isItemSelected} />
                         </TableCell>
-                    </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                        <TableCell component="th" scope="row">
+                          <Box className="flex items-center gap-3">
+                            <Avatar src={row.avatarUrl} alt={row.name} className="w-10 h-10" />
+                            <Typography variant="body1" className="font-medium text-gray-900">{row.name}</Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" className="text-gray-700">{row.location}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" className="text-gray-700">{row.facility}</Typography>
+                          <Typography variant="caption" className="text-gray-500 block">{row.date}</Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${statusColorClass}`}>
+                            {row.status}
+                          </span>
+                        </TableCell>
+                        <TableCell align="right">
+                          <IconButton
+                            aria-label="more"
+                            aria-controls="long-menu"
+                            aria-haspopup="true"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleMenuClick(event, row.id);
+                            }}
+                          >
+                            <MoreVert />
+                          </IconButton>
+                          <Menu
+                            id="long-menu"
+                            anchorEl={anchorEl}
+                            keepMounted
+                            open={Boolean(anchorEl) && selectedRowId === row.id}
+                            onClose={handleMenuClose}
+                            PaperProps={{
+                              style: {
+                                maxHeight: 48 * 4.5,
+                                width: '150px',
+                                borderRadius: '8px',
+                              },
+                            }}
+                          >
+                            <MenuItem onClick={() => handleMenuItemClick('View Details')}>
+                              View Details
+                            </MenuItem>
+                            <MenuItem onClick={() => handleMenuItemClick('Edit')}>
+                              Edit
+                            </MenuItem>
+                            <MenuItem onClick={() => handleMenuItemClick('Delete')}>
+                              Delete
+                            </MenuItem>
+                          </Menu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  {/* If no rows match search, display a message */}
+                  {filteredRows.length === 0 && (
+                      <TableRow>
+                          <TableCell colSpan={6} align="center">
+                              <Typography variant="body1" className="text-gray-500 py-4">No matching profiles found.</Typography>
+                          </TableCell>
+                      </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </Paper>
       </Box>
       <Modal
@@ -438,9 +530,8 @@ function PwdProfilesTable() {
         onClose={handleCloseAddMinorForm}
         aria-labelledby="add-minor-modal-title"
         aria-describedby="add-minor-modal-description"
-        className="flex items-center justify-center p-4" // Tailwind for centering
+        className="flex items-center justify-center p-4"
       >
-        {/* The AddMinorsForm component itself will have the white background and styling */}
         <AddMinorsForm onClose={handleCloseAddMinorForm} onSubmit={handleAddMinorSubmit}/>
       </Modal>
     </ThemeProvider>

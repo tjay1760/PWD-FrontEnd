@@ -26,6 +26,7 @@
     "date-fns": "^4.1.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.511.0",
+    "notistack": "^3.0.2",
     "react": "^19.0.0-rc.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^19.0.0-rc.1",
