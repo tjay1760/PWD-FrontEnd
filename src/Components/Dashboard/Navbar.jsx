@@ -85,6 +85,16 @@ export default function Navbar({ userName = "John Doe", onLogout, userRole }) {
               Using `top-full` will place the dropdown immediately below the group.
           */}
           <div className="absolute right-0 top-full w-32 bg-white border border-gray-200 rounded shadow-lg hidden group-hover:block z-10 py-1">
+            <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              Profile
+            </button>
+            {
+              userRole === 'admin' && (
+                <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  Settings
+                </button>
+              )
+            }
             {/* Added `py-1` for a little vertical padding inside the dropdown */}
             <button
               onClick={onLogout}
