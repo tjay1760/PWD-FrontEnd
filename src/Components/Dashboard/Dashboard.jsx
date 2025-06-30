@@ -1,53 +1,56 @@
-// Components/Dashboard/Dashboard.jsx
 import React, { useState, useEffect } from 'react';
 import {
   Users,
   Home,
   ClipboardList,
   File,
-  ArrowLeft // Import ArrowLeft for the back button
-} from 'lucide-react'; // Make sure ArrowLeft is imported if you use it directly
+  ArrowLeft
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 
-import authService from '../authService'; // Adjust the path as necessary
+import authService from '../authService';
 
 // Import role-specific dashboard and assessment components
-import PWD_Dashboard from './PWD/PWD-Dashboard'; // For PWD role dashboard
-import DoctorsDashboard from './Doctor/Doctors_Dashboard'; // For Doctor role dashboard
-import Health_Officers_Dashboard from './Health_Officer/Health_Officers_Dashboard'; // For Health Officer role dashboard
-import GuardianDashboard from './Guardian/GuardianDashboard'; // For Guardian role dashboard
+import PWD_Dashboard from './PWD/PWD-Dashboard';
+import DoctorsDashboard from './Doctor/Doctors_Dashboard';
+import Health_Officers_Dashboard from './Health_Officer/Health_Officers_Dashboard';
+import GuardianDashboard from './Guardian/GuardianDashboard';
 
-import PWDAssesmentsPage from './PWD/PWDAssesmentsPage'; // For PWD role assessments
-import DoctorsAssesment from './Doctor/DoctorsAssesment'; // For Doctor role assessments
-import HealthOfficerAssesments from './Health_Officer/HealthOfficerAssesments'; // For Health Officer role assessments
+import PWDAssesmentsPage from './PWD/PWDAssesmentsPage';
+import DoctorsAssesment from './Doctor/DoctorsAssesment';
+import HealthOfficerAssesments from './Health_Officer/HealthOfficerAssesments';
 import GuardianAssessment from './Guardian/GuardianAssesment';
 
 // Import generic content components that might be shared or placeholders
-// Assuming DashboardContent, AssessmentsContent, DocumentsContent are generic or default
 import DashboardContent from './DashboardContent';
 import AssessmentsContent from './AssessmentsContent ';
 import DocumentsContent from './DocumentsContent';
 
 import Navbar from './Navbar';
 import PWD_Profile from './PWD/PWD_Profile';
+import Profiles from '../Profiles'; // Make sure this path is correct: Components/Profiles.jsx
 
 const UserDashboard = ({ userData, onAppLogout }) => {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [sidebarHovered, setSidebarHovered] = useState(false);
 
-  // NEW STATES FOR PWD PROFILE DISPLAY
+  // Existing states for PWD profile display (for Medical Officers, etc.)
   const [showPwdProfile, setShowPwdProfile] = useState(false);
   const [currentPwdData, setCurrentPwdData] = useState(null);
 
+  // NEW STATES FOR CURRENT USER'S PROFILE DISPLAY
+  const [showCurrentUserProfile, setShowCurrentUserProfile] = useState(false);
+
   const NAVBAR_HEIGHT = '4rem';
 
-  // Determine user role from userData
   const userRole = userData?.role;
 
   useEffect(() => {
-    // You could set a default starting page based on role if needed
-    // For now, we'll keep 'dashboard' as default and let renderContent handle it.
-  }, [userRole]);
+    // Optionally reset profile views if userRole changes or on component mount
+    setShowPwdProfile(false);
+    setShowCurrentUserProfile(false);
+    setCurrentPage('dashboard'); // Default to dashboard on role change/mount
+  }, [userRole]); // Dependency on userRole or an initial mount trigger
 
   const handleLogout = async () => {
     try {
@@ -61,21 +64,32 @@ const UserDashboard = ({ userData, onAppLogout }) => {
     }
   };
 
-  // Function to show the PWD Profile
+  // Handler to show a specific PWD's profile (e.g., from Doctor's list)
   const handleShowPwdProfile = (pwdData) => {
     setCurrentPwdData(pwdData);
     setShowPwdProfile(true);
-    // Optionally, you might want to switch the `currentPage` state to something like 'pwdProfile'
-    // if you want the sidebar to highlight a different section or prevent other navigation.
-    // For now, we'll keep it simple and just rely on `showPwdProfile`.
+    setShowCurrentUserProfile(false); // Hide current user profile if showing PWD profile
+    // setCurrentPage('pwdProfileView'); // Optionally, set a custom page state for sidebar highlight
   };
 
-  // Function to go back to the previous view (e.g., Doctor's Dashboard or Assessments)
+  // Handler to go back from a specific PWD's profile
   const handleBackFromPwdProfile = () => {
     setShowPwdProfile(false);
     setCurrentPwdData(null);
-    // You might want to intelligently set `currentPage` back to 'dashboard' or 'assessments'
-    // depending on where the user clicked from. For simplicity, we'll just go back to the previous state.
+    // setCurrentPage('dashboard'); // Or back to 'assessments' depending on context
+  };
+
+  // NEW: Handler to show the currently logged-in user's profile
+  const handleShowCurrentUserProfile = () => {
+    setShowCurrentUserProfile(true);
+    setShowPwdProfile(false); // Hide PWD profile if showing current user profile
+    setCurrentPage('profile'); // Set a unique page state for sidebar if you want to highlight "Profile"
+  };
+
+  // NEW: Handler to go back from the current user's profile
+  const handleBackFromCurrentUserProfile = () => {
+    setShowCurrentUserProfile(false);
+    setCurrentPage('dashboard'); // Return to dashboard or previous view
   };
 
   const renderSidebar = () => {
@@ -90,6 +104,13 @@ const UserDashboard = ({ userData, onAppLogout }) => {
       hoverTimeout = setTimeout(() => {
         setSidebarHovered(false);
       }, 200);
+    };
+
+    // Determine active sidebar item
+    const isActive = (pageName) => {
+      if (showCurrentUserProfile) return pageName === 'profile';
+      if (showPwdProfile) return false; // PWD profile is a sub-view, not a main sidebar item
+      return currentPage === pageName;
     };
 
     return (
@@ -118,10 +139,11 @@ const UserDashboard = ({ userData, onAppLogout }) => {
             <button
               onClick={() => {
                 setCurrentPage('dashboard');
-                setShowPwdProfile(false); // Reset profile view when navigating sidebar
+                setShowPwdProfile(false);
+                setShowCurrentUserProfile(false); // Reset profile views when navigating sidebar
               }}
               className={`w-full flex items-center p-3 rounded-lg transition-colors ${
-                currentPage === 'dashboard' && !showPwdProfile ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
+                isActive('dashboard') ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <Home className="w-5 h-5" />
@@ -131,10 +153,11 @@ const UserDashboard = ({ userData, onAppLogout }) => {
             <button
               onClick={() => {
                 setCurrentPage('assessments');
-                setShowPwdProfile(false); // Reset profile view when navigating sidebar
+                setShowPwdProfile(false);
+                setShowCurrentUserProfile(false); // Reset profile views when navigating sidebar
               }}
               className={`w-full flex items-center p-3 rounded-lg transition-colors ${
-                currentPage === 'assessments' && !showPwdProfile ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
+                isActive('assessments') ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <ClipboardList className="w-5 h-5" />
@@ -144,15 +167,30 @@ const UserDashboard = ({ userData, onAppLogout }) => {
             <button
               onClick={() => {
                 setCurrentPage('documents');
-                setShowPwdProfile(false); // Reset profile view when navigating sidebar
+                setShowPwdProfile(false);
+                setShowCurrentUserProfile(false); // Reset profile views when navigating sidebar
               }}
               className={`w-full flex items-center p-3 rounded-lg transition-colors ${
-                currentPage === 'documents' && !showPwdProfile ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
+                isActive('documents') ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <File className="w-5 h-5" />
               {sidebarHovered && <span className="ml-3">Documents</span>}
             </button>
+
+            {/* NEW: Profile button in sidebar if you want it there */}
+            {/* You could add a dedicated "My Profile" button in the sidebar if you wish.
+                It would share the `handleShowCurrentUserProfile` logic.
+            <button
+              onClick={handleShowCurrentUserProfile}
+              className={`w-full flex items-center p-3 rounded-lg transition-colors ${
+                isActive('profile') ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Users className="w-5 h-5" />
+              {sidebarHovered && <span className="ml-3">My Profile</span>}
+            </button>
+            */}
           </nav>
         </div>
       </div>
@@ -161,6 +199,7 @@ const UserDashboard = ({ userData, onAppLogout }) => {
 
 
   const renderContent = () => {
+    // Priority 1: Specific PWD Profile (for doctors/health officers)
     if (showPwdProfile && currentPwdData) {
       return (
         <div className="flex-1 bg-gray-50 p-6">
@@ -168,15 +207,33 @@ const UserDashboard = ({ userData, onAppLogout }) => {
             onClick={handleBackFromPwdProfile}
             className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" /> {/* Using Lucide icon */}
-            Back
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Back to Dashboard
           </button>
+          {/* Note: PWD_Profile probably takes a 'pwdData' prop, not 'userData' */}
           <PWD_Profile userData={currentPwdData} />
         </div>
       );
     }
 
-    // Otherwise, render content based on currentPage and userRole
+    // Priority 2: Current Logged-in User's Profile
+    if (showCurrentUserProfile) {
+      return (
+        <div className="flex-1 bg-gray-50 p-6">
+          <button
+            onClick={handleBackFromCurrentUserProfile}
+            className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Back to Dashboard
+          </button>
+          {/* Pass the logged-in user's data to the Profiles component */}
+          <Profiles userData={userData} />
+        </div>
+      );
+    }
+
+    // Priority 3: Normal Dashboard/Assessments/Documents based on currentPage and userRole
     switch (currentPage) {
       case 'dashboard':
         if (userRole === 'pwd') {
@@ -184,7 +241,6 @@ const UserDashboard = ({ userData, onAppLogout }) => {
         } else if (userRole === 'guardian') {
           return <GuardianDashboard userData={userData} />;
         } else if (userRole === 'medical_officer') {
-          // Pass the handler down to DoctorsDashboard
           return <DoctorsDashboard userData={userData} onShowPwdProfile={handleShowPwdProfile} />;
         } else if (userRole === 'county_director') {
           return <Health_Officers_Dashboard userData={userData} />;
@@ -194,13 +250,9 @@ const UserDashboard = ({ userData, onAppLogout }) => {
       case 'assessments':
         if (userRole === 'pwd') {
           return <PWDAssesmentsPage userData={userData} />;
-        }
-        else if (userRole === 'guardian') {
+        } else if (userRole === 'guardian') {
           return <GuardianAssessment userData={userData} />;
-        }
-        
-        else if (userRole === 'medical_officer') {
-          // Pass the handler down to DoctorsAssesment
+        } else if (userRole === 'medical_officer') {
           return <DoctorsAssesment userData={userData} onShowPwdProfile={handleShowPwdProfile} />;
         } else if (userRole === 'health_officer') {
           return <HealthOfficerAssesments userData={userData} />;
@@ -210,6 +262,17 @@ const UserDashboard = ({ userData, onAppLogout }) => {
       case 'documents':
         return <DocumentsContent userData={userData} />;
 
+      // Handle the 'profile' case if you decide to add it to sidebar
+      case 'profile':
+        // This case would render Profiles component if selected from sidebar
+        // Currently handled by `showCurrentUserProfile` directly for Navbar click.
+        // If you add a sidebar "My Profile" button, this is where it would lead.
+        return (
+          <div className="flex-1 bg-gray-50 p-6">
+            <Profiles userData={userData} />
+          </div>
+        );
+
       default:
         return <DashboardContent userData={userData} />;
     }
@@ -217,7 +280,15 @@ const UserDashboard = ({ userData, onAppLogout }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar onLogout={handleLogout} userName={userData?.fullName || "User"} userRole={userRole} />
+      {/* Pass the new handler to the Navbar */}
+      <Navbar
+        onLogout={handleLogout}
+        // Navbar now fetches its own user data, so you don't need to pass all these:
+        // userName={userData?.fullName || "User"}
+        // userRole={userRole}
+        // userId={userData?.id}
+        onProfileClick={handleShowCurrentUserProfile} // NEW PROP
+      />
 
       <div className="flex flex-1" style={{ paddingTop: NAVBAR_HEIGHT }}>
         {renderSidebar()}

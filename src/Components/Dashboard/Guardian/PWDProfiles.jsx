@@ -131,7 +131,6 @@ function PwdProfilesTable() {
         }
 
         const data = await response.json();
-        console.log('Fetched data:', data); // This will display the data in the console
 
         // Assuming data is an array of PWD objects
         // You'll need to map your API response data to the `createData` format

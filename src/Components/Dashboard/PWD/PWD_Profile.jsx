@@ -6,7 +6,6 @@ const PWD_Profile = ({ userData }) => {
   const [showFormPopup, setShowFormPopup] = useState(false);
   const [selectedDisabilityCategory, setSelectedDisabilityCategory] = useState("");
 
-  console.log("PWD Profile Data:", userData);
   if (!userData || !userData.user) {
     return <div className="text-center p-8 text-gray-600">No PWD data available.</div>;
   }
