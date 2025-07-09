@@ -9,7 +9,7 @@ const PWD_Profile = ({ userData }) => {
   if (!userData || !userData.user) {
     return <div className="text-center p-8 text-gray-600">No PWD data available.</div>;
   }
-
+console.log("Userdata from backend", userData)
   const {
     id,
     email,
@@ -249,7 +249,7 @@ const PWD_Profile = ({ userData }) => {
             <h2 className="text-2xl font-semibold mb-4 text-green-900">
               Disability Assessment Form - {selectedDisabilityCategory}
             </h2>
-            <FormToggler selectedCategory={selectedDisabilityCategory} />
+            <FormToggler selectedCategory={selectedDisabilityCategory} userData={userData}/>
           </div>
         </div>
       )}

@@ -15,6 +15,7 @@ import PWD_Dashboard from './PWD/PWD-Dashboard';
 import DoctorsDashboard from './Doctor/Doctors_Dashboard';
 import Health_Officers_Dashboard from './Health_Officer/Health_Officers_Dashboard';
 import GuardianDashboard from './Guardian/GuardianDashboard';
+import ApproverDashboard from './Medical_Approver/ApproverDashboard';
 
 import PWDAssesmentsPage from './PWD/PWDAssesmentsPage';
 import DoctorsAssesment from './Doctor/DoctorsAssesment';
@@ -244,6 +245,9 @@ const UserDashboard = ({ userData, onAppLogout }) => {
           return <DoctorsDashboard userData={userData} onShowPwdProfile={handleShowPwdProfile} />;
         } else if (userRole === 'county_director') {
           return <Health_Officers_Dashboard userData={userData} />;
+        }
+        else if (userRole==='medical_approver'){
+return <ApproverDashboard userData={userData} onShowPwdProfile={handleShowPwdProfile}/>
         }
         return <DashboardContent userData={userData} />;
 

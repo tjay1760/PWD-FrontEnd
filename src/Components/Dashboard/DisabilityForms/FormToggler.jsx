@@ -12,23 +12,23 @@ import HearingImparements from './HearingImparements';
 // import VisualImpairments from './forms/VisualImpairments';
 // ... and so on for all your forms
 
-const FormToggler = ({ selectedCategory }) => {
+const FormToggler = ({ selectedCategory ,userData}) => {
   const renderForm = () => {
     switch (selectedCategory) {
       case "VISUAL IMPAIRMENTS":
-        return <VisualImpairments />;
+        return <VisualImpairments userData={userData}/>;
       case "HEARING IMPAIRMENTS":
-        return <HearingImparements/>
+        return <HearingImparements userData={userData}/>
       case "SPEECH, LANGUAGE, COMMUNICATION AND SWALLOWING DISABILITIES":
-        return <SpeechImparements/>
+        return <SpeechImparements userData={userData}/>
       case "MENTAL/ INTELLECTUAL/ AUTISM SPECTRUM DISORDERS":
-        return <MentalImparements />;
+        return <MentalImparements userData={userData}/>;
       case "MAXILLOFACIAL DISABILITIES":
-        return <MaxillofacialImparements/>
+        return <MaxillofacialImparements userData={userData}/>
       case "PROGRESSIVE CHRONIC DISORDERS":
-        return <ChronicDisorders />;
+        return <ChronicDisorders userData={userData}/>;
       case "PHYSICAL DISABILITIES":
-        return <PhysicalDisability />;
+        return <PhysicalDisability userData={userData}/>;
       default:
         return <p>Please select a disability category to view the form.</p>;
     }

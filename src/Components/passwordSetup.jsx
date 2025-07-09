@@ -124,7 +124,11 @@ const PasswordSetupComponent = ({ onPasswordSetupComplete, formData }) => {
                 backendRole = 'county_director';
             } else if (formData.officerType === "Medical Assessment Officer") {
                 backendRole = 'medical_officer';
-            } else {
+            }
+            else if (formData.officerType === "Medical Assessment Approver") {
+                backendRole = 'medical_approver';
+            }
+            else {
                 // Fallback for unexpected officerType. Consider if this should throw an error
                 // if your backend strictly only accepts the two specific officer roles.
                 console.warn("Unexpected officerType received:", formData.officerType);

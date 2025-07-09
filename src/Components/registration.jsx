@@ -394,6 +394,17 @@ const Registration = ({ onRegistrationComplete, onLoginClick }) => {
                       />
                       <span className="text-gray-800">County Health Director</span>
                     </label>
+                     <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="officerRole"
+                        value="Medical Assessment Approver"
+                        checked={selectedOfficer === 'Medical Assessment Approver'}
+                        onChange={() => handleOfficerRoleChange('Medical Assessment Approver')}
+                        className="form-checkbox h-4 w-4 text-green-600 rounded"
+                      />
+                      <span className="text-gray-800">Medical Assesment Approver</span>
+                    </label>
                   </div>
 
 

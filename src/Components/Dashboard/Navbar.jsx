@@ -91,8 +91,8 @@ export default function Navbar({ onLogout, onProfileClick }) {
     }
   };
 
-  const userName = userData?.name || "Loading...";
-  const userRole = userData?.role || "";
+  const userName = userData?.user.name || "Loading...";
+  const userRole = userData?.user.role || "";
 
   if (loading) {
     return (
@@ -166,7 +166,11 @@ export default function Navbar({ onLogout, onProfileClick }) {
       {/* Right Section - Icons and Avatar */}
       <div className="flex items-center space-x-4">
         <span className="text-sm font-medium text-gray-700 hidden sm:block">
-          {userRole.toUpperCase()}
+          {userRole.toUpperCase().replace("_"," ") || "none"}
+          {
+            userRole==="medical_officer"?userData?.user?.medicalInfo.approved_by_medical_officer ? "✅ " : "   ⚠️ Pending approval":""
+          }
+        
         </span>
         <RefreshCcw className="w-5 h-5 cursor-pointer text-gray-600" />
         <img src={HelpIcon} alt="Help" className="w-5 h-5 cursor-pointer" />

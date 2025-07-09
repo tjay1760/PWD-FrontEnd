@@ -224,7 +224,7 @@ const token = getToken();
 
             {/* OCCUPATION & EDUCATION */}
             <div>
-              <h2 className="text-blue-600 uppercase font-bold mb-2">Occupation and Education</h2>
+              <h2 className="text-blue-600 uppercase font-bold mb-2"> Education</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <select
                   name="educationDetails" // Corrected name to 'educationDetails' for clarity, assuming backend expects this. Update backend if necessary.
@@ -234,6 +234,7 @@ const token = getToken();
                   className="border p-2 rounded w-full"
                 >
                   <option value="">Select Education Details</option>
+                  <option value="none">No Education</option>
                   <option value="primary">Primary</option>
                   <option value="secondary">Secondary</option>
                   <option value="tertiary">Tertiary</option>
