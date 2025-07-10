@@ -9,7 +9,7 @@ const PWD_Profile = ({ userData }) => {
   if (!userData || !userData.user) {
     return <div className="text-center p-8 text-gray-600">No PWD data available.</div>;
   }
-console.log("Userdata from backend", userData)
+
   const {
     id,
     email,

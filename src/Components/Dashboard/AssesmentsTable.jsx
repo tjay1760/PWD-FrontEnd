@@ -122,7 +122,6 @@ function AssessmentsTable({ onShowPwdProfile }) { // <--- Add onShowPwdProfile p
 
   // Modified handleClick to CALL THE PROP FUNCTION
   const handleClick = async (event, id, row) => {
-    console.log("menuClicked")
     // Prevent event bubbling to the checkbox if it's clicked
     if (event.target.type === 'checkbox') {
         const selectedIndex = selected.indexOf(id);
@@ -176,8 +175,7 @@ function AssessmentsTable({ onShowPwdProfile }) { // <--- Add onShowPwdProfile p
                 alert(`Failed to fetch user details: ${errorData.message || 'Unknown error'}`);
             } else {
                 const userData = await response.json();
-                console.log(`Successfully fetched user data for ${userId}:`, userData);
-                userData.user.hospital = row.hospital
+                               userData.user.hospital = row.hospital
                 // CALL THE onShowPwdProfile PROP TO TELL THE PARENT TO SHOW THE PROFILE
                 if (onShowPwdProfile) { // Ensure the prop exists before calling
                   onShowPwdProfile(userData); // Assuming your backend returns { data: userObject }
