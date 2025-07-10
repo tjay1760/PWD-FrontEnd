@@ -1,35 +1,234 @@
-import React from 'react'
+import React, { useState } from 'react';
 import { Calendar } from 'lucide-react';
-import wheelChairMan from "../../../assets/Wheelchair man.png"
+import wheelChairMan from "../../../assets/Wheelchair man.png";
 import { format } from 'date-fns';
 
 
-const PhysicalDisability = ({userData}) => {
-        const [formData, setFormData] = React.useState({
-            facilityName: "Mama Lucy Kibaki Hospital",
-            assessmentDate: "2025-06-09",
-            firstName: "Antony",
-            middleName: "Kiogora",
-            lastName: "Kaburu",
-            idNumber: "12345678",
-            gender: "Male",
-            dateOfBirth: "2005-12-09",
-            maritalStatus: "Married",
-          });
-        
-          const handleInputChange = (e) => {
-            const { name, value } = e.target;
-            setFormData((prev) => ({
-              ...prev,
-              [name]: value,
-            }));
-          };
+const PhysicalDisability = ({ userData }) => {
+  const [formData, setFormData] = useState({
+    facilityName: userData?.user?.hospital || "Mama Lucy Kibaki Hospital",
+    assessmentDate: format(Date.now(), 'yyyy-MM-dd'), // Format for date input
+    patientFullName: userData?.user?.fullName || "",
+    patientPhone: userData?.user?.phone || "",
+    summary: {
+      dateOfInjuryOnset: "",
+      dateOfLastIntervention: "",
+      causeOfDisability: "",
+    },
+    structuralImpairments: {
+      headAndNeckRegion: false,
+      shoulderRegion: false,
+      upperExtremity: false,
+      pelvis: false,
+      lowerExtremity: false,
+      trunk: false,
+      otherAffectedRegions: "", // For the textarea
+    },
+    assessmentArea: [
+      {
+        id: "musclePower",
+        label: "Muscle Power of affected muscle groups",
+        findings: "",
+        score: "", // Will hold "No Impairment", "Mild Impairment", etc.
+        remarks: "",
+      },
+      {
+        id: "rangeOfMotion",
+        label: "Range of motion of joints affected",
+        findings: "",
+        score: "",
+        remarks: "",
+      },
+      {
+        id: "structuralAngulation",
+        label: "Degree of structural angulation /deviation",
+        findings: "",
+        score: "",
+        remarks: "",
+      },
+      {
+        id: "limbAmputation",
+        label: "Level of limb Amputation",
+        findings: "",
+        score: "",
+        remarks: "",
+      },
+      {
+        id: "limbLength",
+        label: "Bilateral Lower Limb Length",
+        findings: "",
+        score: "",
+        remarks: "",
+      },
+      {
+        id: "balanceCoordination",
+        label: "Balance and coordination",
+        findings: "",
+        score: "",
+        remarks: "",
+      },
+      {
+        id: "otherImpairments",
+        label: "Other Physical Impairments (Specify)",
+        findings: "",
+        score: "",
+        remarks: "",
+      },
+    ],
+    totalScoreForImpairments: {
+      findings: "",
+      score: "",
+      remarks: "",
+    },
+    functionParticipationRestrictions: [ // New dynamic table data
+      { id: "mobility", label: "Mobility", score: "", remarks: "" },
+      { id: "selfCare", label: "Self-Care", score: "", remarks: "" },
+      { id: "domesticLife", label: "Domestic Life", score: "", remarks: "" },
+      { id: "majorLifeAreas", label: "Major Life Areas", score: "", remarks: "" },
+      { id: "communitySocialCivicLife", label: "Community, Social, Civic Life", score: "", remarks: "" },
+    ],
+    totalFunctionParticipationScore: { score: "", remarks: "" }, // For the total score row in this table
+    disabilityRating: { // New section
+      noDisability: "",
+      mild: "",
+      moderate: "",
+      severe: "",
+      complete: "",
+    },
+    conclusion: { // New section
+      sltDiagnosisSeverity: "", // Mild, Moderate, Severe, Profound
+      impactOnRoles: "",
+      impactOnCareer: "",
+    },
+    causeOfDisabilityDetails: { // New section (replaces part of old summary)
+      dateOfInjuryOnset: "",
+      injuryType: "", // Acute or Chronic
+      dateOfLastIntervention: "",
+    },
+    recommendedAssistiveProducts: "",
+    otherRequiredServices: "",
+    disabilityType: "", // temporary or permanent
+  });
+
+  const impairmentScores = [
+    "No Impairment",
+    "Mild Impairment",
+    "Moderate Impairment",
+    "Severe Impairment",
+    "Complete Impairment",
+  ];
+
+  const difficultyScores = [ // New scores for Function and Participation Restrictions
+    "No Difficulty",
+    "Mild Difficulty",
+    "Moderate Difficulty",
+    "Severe Difficulty",
+    "Complete Difficulty",
+  ];
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    if (name.startsWith("summary.")) {
+      const field = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        summary: {
+          ...prev.summary,
+          [field]: value,
+        },
+      }));
+    } else if (name.startsWith("structuralImpairments.")) {
+      const field = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        structuralImpairments: {
+          ...prev.structuralImpairments,
+          [field]: type === 'checkbox' ? checked : value,
+        },
+      }));
+    } else if (name.startsWith("assessmentArea.")) {
+      const [_, id, field] = name.split(".");
+      setFormData((prev) => ({
+        ...prev,
+        assessmentArea: prev.assessmentArea.map((item) =>
+          item.id === id ? { ...item, [field]: value } : item
+        ),
+      }));
+    } else if (name.startsWith("totalScoreForImpairments.")) {
+      const field = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        totalScoreForImpairments: {
+          ...prev.totalScoreForImpairments,
+          [field]: value,
+        },
+      }));
+    } else if (name.startsWith("functionParticipationRestrictions.")) { // New handler for functionParticipationRestrictions
+      const [_, id, field] = name.split(".");
+      setFormData((prev) => ({
+        ...prev,
+        functionParticipationRestrictions: prev.functionParticipationRestrictions.map((item) =>
+          item.id === id ? { ...item, [field]: value } : item
+        ),
+      }));
+    } else if (name.startsWith("totalFunctionParticipationScore.")) { // New handler for total function participation score
+      const field = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        totalFunctionParticipationScore: {
+          ...prev.totalFunctionParticipationScore,
+          [field]: value,
+        },
+      }));
+    } else if (name.startsWith("disabilityRating.")) { // New handler for disability rating
+      const field = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        disabilityRating: {
+          ...prev.disabilityRating,
+          [field]: value,
+        },
+      }));
+    } else if (name.startsWith("conclusion.")) { // New handler for conclusion section
+      const field = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        conclusion: {
+          ...prev.conclusion,
+          [field]: value,
+        },
+      }));
+    } else if (name.startsWith("causeOfDisabilityDetails.")) { // New handler for cause of disability details
+      const field = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        causeOfDisabilityDetails: {
+          ...prev.causeOfDisabilityDetails,
+          [field]: value,
+        },
+      }));
+    }
+    else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Payload to be sent to backend:", JSON.stringify(formData, null, 2));
+    alert("Form data logged to console. Check your browser's developer tools!");
+  };
+
   return (
-   <div className="max-w-4xl mx-auto p-6 bg-white border border-gray-200 rounded-lg shadow-md">
+    <div className="max-w-4xl mx-auto p-6 bg-white border border-gray-200 rounded-lg shadow-md">
       {/* Header */}
       <div className="items-center justify-center mb-8">
         <div className="flex items-center gap-3">
-          <img src={wheelChairMan} />
+          <img src={wheelChairMan} alt="Wheelchair man icon" />
           <div>
             <h1 className="text-lg font-semibold text-gray-800">
               Persons With Disability
@@ -54,18 +253,20 @@ const PhysicalDisability = ({userData}) => {
             <input
               type="text"
               name="facilityName"
-              value={userData.user.hospital}
+              value={formData.facilityName}
               onChange={handleInputChange}
+              readOnly
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Health Facility Name"
             />
           </div>
           <div className="relative">
             <input
-              type="text"
+              type="date"
               name="assessmentDate"
-              value={format(Date.now(),'dd MMMM yyyy')}
+              value={formData.assessmentDate}
               onChange={handleInputChange}
+              readOnly
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <Calendar className="absolute right-3 top-2.5 w-5 h-5 text-gray-400 pointer-events-none" />
@@ -73,859 +274,661 @@ const PhysicalDisability = ({userData}) => {
         </div>
       </div>
 
-      {/* Applicant Information Section */}
-
-    
-
+      {/* Contact Details Section */}
       <h3 className="text-blue-900 font-medium text-sm mb-1">CONTACT DETAILS</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <input
           type="text"
-value={userData.user.fullName}
+          name="patientFullName"
+          value={formData.patientFullName}
+          onChange={handleInputChange}
+          readOnly
           className="border rounded px-3 py-2 w-full"
         />
         <input
           type="text"
-value={userData.user.phone}
+          name="patientPhone"
+          value={formData.patientPhone}
+          onChange={handleInputChange}
+          readOnly
           className="border rounded px-3 py-2 w-full"
         />
       </div>
 
-  
-
-    
-
-
- 
-            <div className="mb-8">
-        <h3 className="text-xl font-bold text-green-700 mb-6">
-          Applicant Information for the purpose of reporting on Disability
-          Assessment:
-        </h3>
-
-    
-
+      {/* Summary Findings Section */}
+      <div className="mb-4">
+        <h3 className="text-lg font-bold text-gray-800 mb-3">SUMMARY FINDINGS</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-300">
+            <thead>
+              <tr>
+                <th className="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-1/3">
+                  Brief Medical History
+                </th>
+                <th className="py-2 px-4 border-b border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-2/3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
+                  Date of Injury/Onset of Illness
+                </td>
+                <td className="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
+                  <input
+                    type="date"
+                    name="summary.dateOfInjuryOnset"
+                    value={formData.summary.dateOfInjuryOnset}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
+                  Date of Last Intervention
+                </td>
+                <td className="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
+                  <input
+                    type="date"
+                    name="summary.dateOfLastIntervention"
+                    value={formData.summary.dateOfLastIntervention}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
+                  Cause of Disability
+                </td>
+                <td className="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
+                  <input
+                    type="text"
+                    name="summary.causeOfDisability"
+                    value={formData.summary.causeOfDisability}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-<div class="mb-4">
-    <h3 class="text-lg font-bold text-gray-800 mb-3">SUMMARY FINDINGS</h3>
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-300">
+
+      {/* Structural Impairments Section */}
+      <div className="mb-4">
+        <h3 className="text-lg font-bold text-gray-800 mb-3">STRUCTURAL IMPAIRMENTS</h3>
+        <div className="border-b border-gray-300 pb-2 mb-4"></div>
+        <div className="border-b border-gray-300 pb-2 mb-6"></div>
+
+        <p className="block text-gray-700 text-sm font-medium mb-3">
+          s7. STRUCTURE: <span className="text-gray-500 font-normal ml-2">(Tick Region/part being assessed that has IMPAIREMENT)</span>
+        </p>
+        <div className="grid grid-cols-1 gap-y-3 mb-6">
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="structuralImpairments.headAndNeckRegion"
+              checked={formData.structuralImpairments.headAndNeckRegion}
+              onChange={handleInputChange}
+              className="form-checkbox h-4 w-4 text-blue-600 mr-2 focus:ring-blue-500"
+            />
+            <label className="text-gray-700 text-sm font-normal">s710 Head and neck region</label>
+          </div>
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="structuralImpairments.shoulderRegion"
+              checked={formData.structuralImpairments.shoulderRegion}
+              onChange={handleInputChange}
+              className="form-checkbox h-4 w-4 text-blue-600 mr-2 focus:ring-blue-500"
+            />
+            <label className="text-gray-700 text-sm font-normal">s720 Shoulder region</label>
+          </div>
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="structuralImpairments.upperExtremity"
+              checked={formData.structuralImpairments.upperExtremity}
+              onChange={handleInputChange}
+              className="form-checkbox h-4 w-4 text-blue-600 mr-2 focus:ring-blue-500"
+            />
+            <label className="text-gray-700 text-sm font-normal">s730 Upper extremity (arm, hand)</label>
+          </div>
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="structuralImpairments.pelvis"
+              checked={formData.structuralImpairments.pelvis}
+              onChange={handleInputChange}
+              className="form-checkbox h-4 w-4 text-blue-600 mr-2 focus:ring-blue-500"
+            />
+            <label className="text-gray-700 text-sm font-normal">s740 Pelvis</label>
+          </div>
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="structuralImpairments.lowerExtremity"
+              checked={formData.structuralImpairments.lowerExtremity}
+              onChange={handleInputChange}
+              className="form-checkbox h-4 w-4 text-blue-600 mr-2 focus:ring-blue-500"
+            />
+            <label className="text-gray-700 text-sm font-normal">s750 Lower extremity (leg, foot)</label>
+          </div>
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="structuralImpairments.trunk"
+              checked={formData.structuralImpairments.trunk}
+              onChange={handleInputChange}
+              className="form-checkbox h-4 w-4 text-blue-600 mr-2 focus:ring-blue-500"
+            />
+            <label className="text-gray-700 text-sm font-normal">s760 Trunk</label>
+          </div>
+        </div>
+
+        <p className="block text-gray-700 text-sm font-medium mb-3">
+          s8. SKIN AND RELATED STRUCTURES ANY OTHER BODY STRUCTURES
+        </p>
+        <p className="block text-gray-700 text-sm font-medium mb-2">
+          REGION (s) AFFECTED
+        </p>
+        <textarea
+          name="structuralImpairments.otherAffectedRegions"
+          value={formData.structuralImpairments.otherAffectedRegions}
+          onChange={handleInputChange}
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm mb-4"
+          placeholder="Please describe the affected regions here..."
+        ></textarea>
+      </div>
+
+      {/* Assessment Area Table */}
+      <div className="mb-4">
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-300">
             <thead>
-                <tr>
-                    <th class="py-2 px-4 border-b border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-1/3">
-                        Brief Medical History
-                    </th>
-                    <th class="py-2 px-4 border-b border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-2/3">
-                        </th>
-                </tr>
+              <tr>
+                <th rowSpan="2" className="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-1/5">
+                  Assessment Area
+                </th>
+                <th rowSpan="2" className="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-1/5">
+                  Findings
+                </th>
+                <th colSpan="5" className="py-2 px-4 border-b border-gray-300 bg-gray-100 text-center text-sm font-medium text-gray-700 w-2/5">
+                  Score ✓ for nature of impairments
+                </th>
+                <th rowSpan="2" className="py-2 px-4 border-b border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-1/5">
+                  Remarks
+                </th>
+              </tr>
+              <tr>
+                {impairmentScores.map((score) => (
+                  <th key={score} className="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-center text-xs font-medium text-gray-700">
+                    {score}
+                  </th>
+                ))}
+              </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        Date of Injury/Onset of Illness
+              {formData.assessmentArea.map((area) => (
+                <tr key={area.id}>
+                  <td className="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
+                    {area.label}
+                  </td>
+                  <td className="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
+                    <input
+                      type="text"
+                      name={`assessmentArea.${area.id}.findings`}
+                      value={area.findings}
+                      onChange={handleInputChange}
+                      className="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </td>
+                  {impairmentScores.map((scoreOption) => (
+                    <td key={scoreOption} className="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
+                      <input
+                        type="radio"
+                        name={`assessmentArea.${area.id}.score`}
+                        value={scoreOption}
+                        checked={area.score === scoreOption}
+                        onChange={handleInputChange}
+                        className="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500"
+                      />
                     </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="summaryDateOfInjuryOnset"
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
+                  ))}
+                  <td className="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
+                    <input
+                      type="text"
+                      name={`assessmentArea.${area.id}.remarks`}
+                      value={area.remarks}
+                      onChange={handleInputChange}
+                      className="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </td>
                 </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        Date of Last Intervention
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="summaryDateOfLastIntervention"
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        Cause of Disability
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="summaryCauseOfDisability"
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
+              ))}
+              {/* Total Score for Impairments Row */}
+              <tr>
+                <td className="py-3 px-4 border-r border-gray-300 text-sm text-gray-700 font-semibold">
+                  SCORE FOR IMPAIRMENTS
+                </td>
+                <td className="py-3 px-4 border-r border-gray-300 text-sm text-gray-700">
+                  <input
+                    type="text"
+                    name="totalScoreForImpairments.findings"
+                    value={formData.totalScoreForImpairments.findings}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </td>
+                {impairmentScores.map((scoreOption) => (
+                  <td key={`total-${scoreOption}`} className="py-3 px-4 border-r border-gray-300 text-sm text-gray-700 text-center">
+                    <input
+                      type="radio"
+                      name="totalScoreForImpairments.score"
+                      value={scoreOption}
+                      checked={formData.totalScoreForImpairments.score === scoreOption}
+                      onChange={handleInputChange}
+                      className="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    />
+                  </td>
+                ))}
+                <td className="py-3 px-4 border-gray-300 text-sm text-gray-700">
+                  <input
+                    type="text"
+                    name="totalScoreForImpairments.remarks"
+                    value={formData.totalScoreForImpairments.remarks}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </td>
+              </tr>
             </tbody>
-        </table>
-    </div>
-</div>
-<div class="mb-4">
-    <h3 class="text-lg font-bold text-gray-800 mb-3">STRUCTURAL IMPAIRMENTS</h3>
-    <div class="border-b border-gray-300 pb-2 mb-4"></div>
-    <div class="border-b border-gray-300 pb-2 mb-6"></div>
+          </table>
+        </div>
+      </div>
 
-    <p class="block text-gray-700 text-sm font-medium mb-3">
-        s7. STRUCTURE: <span class="text-gray-500 font-normal ml-2">(Tick Region/part being assessed that has IMPAIREMENT)</span>
-    </p>
-    <div class="grid grid-cols-1 gap-y-3 mb-6">
-        <div class="flex items-center">
-            <input type="checkbox" name="structureS710" value="Head and neck region"
-                class="form-checkbox h-4 w-4 text-blue-600 mr-2 focus:ring-blue-500" />
-            <label class="text-gray-700 text-sm font-normal">s710 Head and neck region</label>
-        </div>
-        <div class="flex items-center">
-            <input type="checkbox" name="structureS720" value="Shoulder region"
-                class="form-checkbox h-4 w-4 text-blue-600 mr-2 focus:ring-blue-500" />
-            <label class="text-gray-700 text-sm font-normal">s720 Shoulder region</label>
-        </div>
-        <div class="flex items-center">
-            <input type="checkbox" name="structureS730" value="Upper extremity (arm, hand)"
-                class="form-checkbox h-4 w-4 text-blue-600 mr-2 focus:ring-blue-500" />
-            <label class="text-gray-700 text-sm font-normal">s730 Upper extremity (arm, hand)</label>
-        </div>
-        <div class="flex items-center">
-            <input type="checkbox" name="structureS740" value="Pelvis"
-                class="form-checkbox h-4 w-4 text-blue-600 mr-2 focus:ring-blue-500" />
-            <label class="text-gray-700 text-sm font-normal">s740 Pelvis</label>
-        </div>
-        <div class="flex items-center">
-            <input type="checkbox" name="structureS750" value="Lower extremity (leg, foot)"
-                class="form-checkbox h-4 w-4 text-blue-600 mr-2 focus:ring-blue-500" />
-            <label class="text-gray-700 text-sm font-normal">s750 Lower extremity (leg, foot)</label>
-        </div>
-        <div class="flex items-center">
-            <input type="checkbox" name="structureS760" value="Trunk"
-                class="form-checkbox h-4 w-4 text-blue-600 mr-2 focus:ring-blue-500" />
-            <label class="text-gray-700 text-sm font-normal">s760 Trunk</label>
-        </div>
-    </div>
-
-    <p class="block text-gray-700 text-sm font-medium mb-3">
-        s8. SKIN AND RELATED STRUCTURES ANY OTHER BODY STRUCTURES
-    </p>
-
-    <p class="block text-gray-700 text-sm font-medium mb-2">
-        REGION (s) AFFECTED
-    </p>
-   <textaarea class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm mb-4">
-        Please describe the affected regions here...
-   </textaarea>
-</div>
-<div class="mb-4">
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-300">
+      {/* FUNCTION AND PARTICIPATION RESTRICTIONS Table */}
+      <div className="mb-4">
+        <h3 className="text-lg font-bold text-gray-800 mb-3">FUNCTION AND PARTICIPATION RESTRICTIONS</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-300">
             <thead>
-                <tr>
-                    <th rowspan="2"
-                        class="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-1/5">
-                        Assessment Area
-                    </th>
-                    <th rowspan="2"
-                        class="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-1/5">
-                        Findings
-                    </th>
-                    <th colspan="5"
-                        class="py-2 px-4 border-b border-gray-300 bg-gray-100 text-center text-sm font-medium text-gray-700 w-2/5">
-                        Score ✓ for nature of impairments
-                    </th>
-                    <th rowspan="2"
-                        class="py-2 px-4 border-b border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-1/5">
-                        Remarks
-                    </th>
-                </tr>
-                <tr>
-                    <th class="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-center text-xs font-medium text-gray-700">
-                        No Impairment
-                    </th>
-                    <th class="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-center text-xs font-medium text-gray-700">
-                        Mild Impairment
-                    </th>
-                    <th class="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-center text-xs font-medium text-gray-700">
-                        Moderate Impairment
-                    </th>
-                    <th class="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-center text-xs font-medium text-gray-700">
-                        Severe Impairment
-                    </th>
-                    <th class="py-2 px-4 border-b border-gray-300 bg-gray-100 text-center text-xs font-medium text-gray-700">
-                        Complete Impairment
-                    </th>
-                </tr>
+              <tr>
+                <th rowSpan="2" className="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-1/4">
+                  Area
+                </th>
+                <th colSpan="5" className="py-2 px-4 border-b border-gray-300 bg-gray-100 text-center text-sm font-medium text-gray-700 w-3/4">
+                  Score ✓ For Nature of Difficulty
+                </th>
+                <th rowSpan="2" className="py-2 px-4 border-b border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-1/4">
+                  Remarks
+                </th>
+              </tr>
+              <tr>
+                {difficultyScores.map((score) => (
+                  <th key={score} className="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-center text-xs font-medium text-gray-700">
+                    {score}
+                  </th>
+                ))}
+              </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        Muscle Power of affected muscle groups
+              {formData.functionParticipationRestrictions.map((area) => (
+                <tr key={area.id}>
+                  <td className="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
+                    {area.label}
+                  </td>
+                  {difficultyScores.map((scoreOption) => (
+                    <td key={scoreOption} className="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
+                      <input
+                        type="radio" // Changed to radio
+                        name={`functionParticipationRestrictions.${area.id}.score`}
+                        value={scoreOption}
+                        checked={area.score === scoreOption}
+                        onChange={handleInputChange}
+                        className="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500"
+                      />
                     </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="musclePowerFindings"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="musclePowerScore" value="No Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="musclePowerScore" value="Mild Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="musclePowerScore" value="Moderate Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="musclePowerScore" value="Severe Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="musclePowerScore" value="Complete Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="musclePowerRemarks"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
+                  ))}
+                  <td className="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
+                    <input
+                      type="text"
+                      name={`functionParticipationRestrictions.${area.id}.remarks`}
+                      value={area.remarks}
+                      onChange={handleInputChange}
+                      className="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </td>
                 </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        Range of motion of joints affected
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="rangeOfMotionFindings"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="rangeOfMotionScore" value="No Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="rangeOfMotionScore" value="Mild Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="rangeOfMotionScore" value="Moderate Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="rangeOfMotionScore" value="Severe Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="rangeOfMotionScore" value="Complete Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="rangeOfMotionRemarks"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        Degree of structural angulation /deviation
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="structuralAngulationFindings"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="structuralAngulationScore" value="No Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="structuralAngulationScore" value="Mild Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="structuralAngulationScore" value="Moderate Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="structuralAngulationScore" value="Severe Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="structuralAngulationScore" value="Complete Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="structuralAngulationRemarks"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        Level of limb Amputation
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="limbAmputationFindings"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="limbAmputationScore" value="No Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="limbAmputationScore" value="Mild Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="limbAmputationScore" value="Moderate Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="limbAmputationScore" value="Severe Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="limbAmputationScore" value="Complete Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="limbAmputationRemarks"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        Bilateral Lower Limb Length
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="limbLengthFindings"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="limbLengthScore" value="No Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="limbLengthScore" value="Mild Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="limbLengthScore" value="Moderate Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="limbLengthScore" value="Severe Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="limbLengthScore" value="Complete Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="limbLengthRemarks"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        Balance and coordination
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="balanceCoordinationFindings"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="balanceCoordinationScore" value="No Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="balanceCoordinationScore" value="Mild Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="balanceCoordinationScore" value="Moderate Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="balanceCoordinationScore" value="Severe Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="balanceCoordinationScore" value="Complete Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="balanceCoordinationRemarks"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        Other Physical Impairments (Specify)
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="otherImpairmentsFindings"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="otherImpairmentsScore" value="No Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="otherImpairmentsScore" value="Mild Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="otherImpairmentsScore" value="Moderate Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="otherImpairmentsScore" value="Severe Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="otherImpairmentsScore" value="Complete Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="otherImpairmentsRemarks"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-r border-gray-300 text-sm text-gray-700 font-semibold">
-                        SCORE FOR IMPAIRMENTS
-                    </td>
-                    <td class="py-3 px-4 border-r border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="totalScoreFindings"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                    <td class="py-3 px-4 border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="totalScore" value="No Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="totalScore" value="Mild Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="totalScore" value="Moderate Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="totalScore" value="Severe Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="totalScore" value="Complete Impairment"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="totalScoreRemarks"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
+              ))}
+              {/* Total Score for Function and Participation Restriction Row */}
+              <tr>
+                <td className="py-3 px-4 border-r border-gray-300 text-sm text-gray-700 font-semibold">
+                  Score For Function and Participation Restriction
+                </td>
+                {difficultyScores.map((scoreOption) => (
+                  <td key={`total-func-${scoreOption}`} className="py-3 px-4 border-r border-gray-300 text-sm text-gray-700 text-center">
+                    <input
+                      type="radio" // Changed to radio
+                      name="totalFunctionParticipationScore.score"
+                      value={scoreOption}
+                      checked={formData.totalFunctionParticipationScore.score === scoreOption}
+                      onChange={handleInputChange}
+                      className="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    />
+                  </td>
+                ))}
+                <td className="py-3 px-4 border-gray-300 text-sm text-gray-700">
+                  <input
+                    type="text"
+                    name="totalFunctionParticipationScore.remarks"
+                    value={formData.totalFunctionParticipationScore.remarks}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </td>
+              </tr>
             </tbody>
-        </table>
-    </div>
-</div>
-<div class="mb-4">
-    <h3 class="text-lg font-bold text-gray-800 mb-3">FUNCTION AND PARTICIPATION RESTRICTIONS</h3>
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-300">
-            <thead>
-                <tr>
-                    <th rowspan="2"
-                        class="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-1/4">
-                        Area
-                    </th>
-                    <th colspan="6"
-                        class="py-2 px-4 border-b border-gray-300 bg-gray-100 text-center text-sm font-medium text-gray-700 w-3/4">
-                        Score ✓ For Nature of Difficulty
-                    </th>
-                    <th rowspan="2"
-                        class="py-2 px-4 border-b border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-1/4">
-                        Remarks
-                    </th>
-                </tr>
-                <tr>
-                    <th class="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-center text-xs font-medium text-gray-700">
-                        No Difficulty
-                    </th>
-                    <th class="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-center text-xs font-medium text-gray-700">
-                        Mild Difficulty
-                    </th>
-                    <th class="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-center text-xs font-medium text-gray-700">
-                        Moderate Difficulty
-                    </th>
-                    <th class="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-center text-xs font-medium text-gray-700">
-                        Severe Difficulty
-                    </th>
-                    <th class="py-2 px-4 border-b border-r border-gray-300 bg-gray-100 text-center text-xs font-medium text-gray-700">
-                        Complete Difficulty
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        Mobility
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="mobilityDifficulty" value="No Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="mobilityDifficulty" value="Mild Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="mobilityDifficulty" value="Moderate Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="mobilityDifficulty" value="Severe Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="mobilityDifficulty" value="Complete Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="mobilityRemarks"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        Self-Care
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="selfCareDifficulty" value="No Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="selfCareDifficulty" value="Mild Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="selfCareDifficulty" value="Moderate Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="selfCareDifficulty" value="Severe Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="selfCareDifficulty" value="Complete Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="selfCareRemarks"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        Domestic Life
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="domesticLifeDifficulty" value="No Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="domesticLifeDifficulty" value="Mild Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="domesticLifeDifficulty" value="Moderate Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="domesticLifeDifficulty" value="Severe Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="domesticLifeDifficulty" value="Complete Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="domesticLifeRemarks"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        Major Life Areas
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="majorLifeAreasDifficulty" value="No Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="majorLifeAreasDifficulty" value="Mild Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="majorLifeAreasDifficulty" value="Moderate Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="majorLifeAreasDifficulty" value="Severe Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="majorLifeAreasDifficulty" value="Complete Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="majorLifeAreasRemarks"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        Community, Social, Civic Life
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="communityLifeDifficulty" value="No Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="communityLifeDifficulty" value="Mild Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="communityLifeDifficulty" value="Moderate Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="communityLifeDifficulty" value="Severe Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="communityLifeDifficulty" value="Complete Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="communityLifeRemarks"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 font-semibold">
-                        Score For Function and Participation Restriction
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="functionParticipationScore" value="No Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="functionParticipationScore" value="Mild Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="functionParticipationScore" value="Moderate Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="functionParticipationScore" value="Severe Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700 text-center">
-                        <input type="checkbox" name="functionParticipationScore" value="Complete Difficulty"
-                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="functionParticipationRemarks"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<div class="mb-4">
-    <h3 class="text-lg font-bold text-gray-800 mb-3">Disability Rating</h3>
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-300">
-            <tbody>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        No disability
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="noDisability"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        Mild
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="mildDisability"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        Moderate
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="moderateDisability"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
-                        Severe
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="severeDisability"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-r border-gray-300 text-sm text-gray-700">
-                        Complete
-                    </td>
-                    <td class="py-3 px-4 border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="completeDisability"
-                            class="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-            {/* Conclusion Section */}
-  <div class="mb-4">
-    <h3 class="text-lg font-bold text-gray-800 mb-3">CONCLUSION</h3>
-
-    <p class="block text-gray-700 text-sm font-medium mb-3">
-        SLT DIAGNOSIS: Include severity and complete attached scale to rate impairment, activity, participation,
-        well-being, and distress.
-    </p>
-
-    <div class="mb-6">
-        <p class="block text-gray-700 text-sm font-normal mb-2">Severity (circle as appropriate):</p>
-        <div class="flex items-center space-x-6">
-            <label class="inline-flex items-center">
-                <input type="radio" name="severity" value="Mild"
-                    class="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                <span class="ml-2 text-gray-700 text-sm">Mild</span>
-            </label>
-            <label class="inline-flex items-center">
-                <input type="radio" name="severity" value="Moderate"
-                    class="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                <span class="ml-2 text-gray-700 text-sm">Moderate</span>
-            </label>
-            <label class="inline-flex items-center">
-                <input type="radio" name="severity" value="Severe"
-                    class="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                <span class="ml-2 text-gray-700 text-sm">Severe</span>
-            </label>
-            <label class="inline-flex items-center">
-                <input type="radio" name="severity" value="Profound"
-                    class="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                <span class="ml-2 text-gray-700 text-sm">Profound</span>
-            </label>
+          </table>
         </div>
-    </div>
+      </div>
 
-    <div class="mb-6">
-        <p class="block text-gray-700 text-sm font-medium mb-3">
+      {/* Disability Rating */}
+      <div className="mb-4">
+        <h3 className="text-lg font-bold text-gray-800 mb-3">Disability Rating</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-300">
+            <tbody>
+              <tr>
+                <td className="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
+                  No disability
+                </td>
+                <td className="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
+                  <input
+                    type="text"
+                    name="disabilityRating.noDisability"
+                    value={formData.disabilityRating.noDisability}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
+                  Mild
+                </td>
+                <td className="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
+                  <input
+                    type="text"
+                    name="disabilityRating.mild"
+                    value={formData.disabilityRating.mild}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
+                  Moderate
+                </td>
+                <td className="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
+                  <input
+                    type="text"
+                    name="disabilityRating.moderate"
+                    value={formData.disabilityRating.moderate}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
+                  Severe
+                </td>
+                <td className="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
+                  <input
+                    type="text"
+                    name="disabilityRating.severe"
+                    value={formData.disabilityRating.severe}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 border-r border-gray-300 text-sm text-gray-700">
+                  Complete
+                </td>
+                <td className="py-3 px-4 border-gray-300 text-sm text-gray-700">
+                  <input
+                    type="text"
+                    name="disabilityRating.complete"
+                    value={formData.disabilityRating.complete}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-1 py-0.5 border-0 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Conclusion Section */}
+      <div className="mb-4">
+        <h3 className="text-lg font-bold text-gray-800 mb-3">CONCLUSION</h3>
+
+        <p className="block text-gray-700 text-sm font-medium mb-3">
+          SLT DIAGNOSIS: Include severity and complete attached scale to rate impairment, activity, participation,
+          well-being, and distress.
+        </p>
+
+        <div className="mb-6">
+          <p className="block text-gray-700 text-sm font-normal mb-2">Severity (circle as appropriate):</p>
+          <div className="flex items-center space-x-6">
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                name="conclusion.sltDiagnosisSeverity"
+                value="Mild"
+                checked={formData.conclusion.sltDiagnosisSeverity === "Mild"}
+                onChange={handleInputChange}
+                className="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="ml-2 text-gray-700 text-sm">Mild</span>
+            </label>
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                name="conclusion.sltDiagnosisSeverity"
+                value="Moderate"
+                checked={formData.conclusion.sltDiagnosisSeverity === "Moderate"}
+                onChange={handleInputChange}
+                className="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="ml-2 text-gray-700 text-sm">Moderate</span>
+            </label>
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                name="conclusion.sltDiagnosisSeverity"
+                value="Severe"
+                checked={formData.conclusion.sltDiagnosisSeverity === "Severe"}
+                onChange={handleInputChange}
+                className="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="ml-2 text-gray-700 text-sm">Severe</span>
+            </label>
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                name="conclusion.sltDiagnosisSeverity"
+                value="Profound"
+                checked={formData.conclusion.sltDiagnosisSeverity === "Profound"}
+                onChange={handleInputChange}
+                className="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="ml-2 text-gray-700 text-sm">Profound</span>
+            </label>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <p className="block text-gray-700 text-sm font-medium mb-3">
             Impact of disability on fulfilling PWD’s roles and responsibilities.
-        </p>
-        <textarea name="impactOnRoles" rows="4"
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-    </div>
+          </p>
+          <textarea
+            name="conclusion.impactOnRoles"
+            value={formData.conclusion.impactOnRoles}
+            onChange={handleInputChange}
+            rows="4"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          ></textarea>
+        </div>
 
-    <div class="mb-6">
-        <p class="block text-gray-700 text-sm font-medium mb-3">
+        <div className="mb-6">
+          <p className="block text-gray-700 text-sm font-medium mb-3">
             Impact on Career
-        </p>
-        <textarea name="impactOnCareer" rows="4"
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-    </div>
+          </p>
+          <textarea
+            name="conclusion.impactOnCareer"
+            value={formData.conclusion.impactOnCareer}
+            onChange={handleInputChange}
+            rows="4"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          ></textarea>
+        </div>
+      </div>
 
-
-</div>
-<div class="mb-4">
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-300">
+      {/* Cause of Disability Details Table */}
+      <div className="mb-4">
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-300">
             <thead>
-                <tr>
-                    <th class="py-2 px-4 border-b border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-1/3">
-                        Cause of disability
-                    </th>
-                    <th class="py-2 px-4 border-b border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-2/3"
-                        colspan="2">
-                        </th>
-                </tr>
+              <tr>
+                <th className="py-2 px-4 border-b border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-1/3">
+                  Cause of disability
+                </th>
+                <th className="py-2 px-4 border-b border-gray-300 bg-gray-100 text-left text-sm font-medium text-gray-700 w-2/3" colSpan="2">
+                </th>
+              </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        Date of injury/onset of illness
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        <input type="text" name="dateOfInjuryOnset"
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700 flex items-center space-x-4">
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="injuryType" value="Acute"
-                                class="form-checkbox h-4 w-4 text-blue-600 mr-1 focus:ring-blue-500" /> Acute
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="injuryType" value="Chronic"
-                                class="form-checkbox h-4 w-4 text-blue-600 mr-1 focus:ring-blue-500" /> Chronic
-                        </label>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700">
-                        Date of last intervention
-                    </td>
-                    <td class="py-3 px-4 border-b border-gray-300 text-sm text-gray-700" colspan="2">
-                        <input type="text" name="dateOfLastIntervention"
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                    </td>
-                </tr>
+              <tr>
+                <td className="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
+                  Date of injury/onset of illness
+                </td>
+                <td className="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
+                  <input
+                    type="date" // Changed to date type
+                    name="causeOfDisabilityDetails.dateOfInjuryOnset"
+                    value={formData.causeOfDisabilityDetails.dateOfInjuryOnset}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </td>
+                <td className="py-3 px-4 border-b border-gray-300 text-sm text-gray-700 flex items-center space-x-4">
+                  <label className="inline-flex items-center">
+                    <input
+                      type="radio" // Changed to radio
+                      name="causeOfDisabilityDetails.injuryType"
+                      value="Acute"
+                      checked={formData.causeOfDisabilityDetails.injuryType === "Acute"}
+                      onChange={handleInputChange}
+                      className="form-radio h-4 w-4 text-blue-600 mr-1 focus:ring-blue-500"
+                    /> Acute
+                  </label>
+                  <label className="inline-flex items-center">
+                    <input
+                      type="radio" // Changed to radio
+                      name="causeOfDisabilityDetails.injuryType"
+                      value="Chronic"
+                      checked={formData.causeOfDisabilityDetails.injuryType === "Chronic"}
+                      onChange={handleInputChange}
+                      className="form-radio h-4 w-4 text-blue-600 mr-1 focus:ring-blue-500"
+                    /> Chronic
+                  </label>
+                </td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 border-b border-r border-gray-300 text-sm text-gray-700">
+                  Date of last intervention
+                </td>
+                <td className="py-3 px-4 border-b border-gray-300 text-sm text-gray-700" colSpan="2">
+                  <input
+                    type="date" // Changed to date type
+                    name="causeOfDisabilityDetails.dateOfLastIntervention"
+                    value={formData.causeOfDisabilityDetails.dateOfLastIntervention}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </td>
+              </tr>
             </tbody>
-        </table>
-    </div>
+          </table>
+        </div>
 
-    <div class="mt-8 mb-4">
-        <p class="block text-gray-700 text-sm font-medium mb-2">
-            RECOMMENDED ASSISTIVE PRODUCT(S)........................................
-        </p>
-        <input type="text" name="recommendedAssistiveProducts"
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-    </div>
+        <div className="mt-8 mb-4">
+          <p className="block text-gray-700 text-sm font-medium mb-2">
+            RECOMMENDED ASSISTIVE PRODUCT(S)
+          </p>
+          <input
+            type="text"
+            name="recommendedAssistiveProducts"
+            value={formData.recommendedAssistiveProducts}
+            onChange={handleInputChange}
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          />
+        </div>
 
-    <div class="mb-4">
-        <p class="block text-gray-700 text-sm font-medium mb-2">
-            OTHER REQUIRED SERVICES................................................
-        </p>
-        <input type="text" name="otherRequiredServices"
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-    </div>
-</div>
+        <div className="mb-4">
+          <p className="block text-gray-700 text-sm font-medium mb-2">
+            OTHER REQUIRED SERVICES
+          </p>
+          <input
+            type="text"
+            name="otherRequiredServices"
+            value={formData.otherRequiredServices}
+            onChange={handleInputChange}
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          />
+        </div>
+      </div>
 
       {/* Disability Type Selection permanent temporary*/}
-  <div className="flex gap-4">
-  <label className="flex items-center gap-2 px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 bg-white cursor-pointer">
-    <input
-      type="radio"
-      name="disabilityType"
-      value="temporary"
-      className="form-radio text-green-600 focus:ring-green-500"
-    />
-    Temporary
-  </label>
+      <div className="flex gap-4">
+        <label className="flex items-center gap-2 px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 bg-white cursor-pointer">
+          <input
+            type="radio"
+            name="disabilityType"
+            value="temporary"
+            checked={formData.disabilityType === "temporary"}
+            onChange={handleInputChange}
+            className="form-radio text-green-600 focus:ring-green-500"
+          />
+          Temporary
+        </label>
 
-  <label className="flex items-center gap-2 px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 bg-white cursor-pointer">
-    <input
-      type="radio"
-      name="disabilityType"
-      value="permanent"
-      className="form-radio text-green-600 focus:ring-green-500"
-    />
-    Permanent
-  </label>
-</div>
+        <label className="flex items-center gap-2 px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 bg-white cursor-pointer">
+          <input
+            type="radio"
+            name="disabilityType"
+            value="permanent"
+            checked={formData.disabilityType === "permanent"}
+            onChange={handleInputChange}
+            className="form-radio text-green-600 focus:ring-green-500"
+          />
+          Permanent
+        </label>
+      </div>
 
-        {/* Submit Button */}
+      {/* Submit Button */}
       <div className="flex justify-center pt-6">
         <button
           type="submit"
+          onClick={handleSubmit}
           className="w-full max-w-md px-8 py-3 bg-green-100 text-green-800 font-medium rounded-full border border-green-300 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200 flex items-center justify-center gap-2"
         >
           SUBMIT FOR PEER REVIEW
@@ -933,7 +936,7 @@ value={userData.user.phone}
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default PhysicalDisability
+export default PhysicalDisability;
