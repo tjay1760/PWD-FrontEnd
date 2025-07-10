@@ -1,11 +1,14 @@
 import React from 'react';
 import { Calendar } from "lucide-react";
 import wheelChairMan from "../../../assets/Wheelchair man.png"; // Adjust the path as necessary
+import { format } from "date-fns";
 
 const SpeechImparements = ({ userData }) => {
   const [formData, setFormData] = React.useState({
-    facilityName: userData.user.hospital || "", // Initialize from userData
-    assessmentDate: "", // Keep empty for user input or set a default like new Date().toISOString().split('T')[0]
+    facilityName: userData?.user?.hospital || "Mama Lucy Kibaki Hospital",
+    assessmentDate: format(Date.now(), 'yyyy-MM-dd'), // Format for date input
+    patientFullName: userData?.user?.fullName || "",
+    patientPhone: userData?.user?.phone || "",
     
     // Core Form Fields
     medicalHistory: "",
