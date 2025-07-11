@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { Calendar } from "lucide-react";
 import wheelChairMan from "../../../assets/Wheelchair man.png"; // Adjust the path as necessary
 import { format } from "date-fns";
-
+const API_BASE_URL = "http://localhost:5000/api/assessments/submit/";
 const VisualImpairments = ({ userData }) => {
+  const officer = JSON.parse(localStorage.getItem("userData"));
+
   const [formData, setFormData] = useState({
     // Nested object for patient details (read-only in UI, but part of form data for submission)
     facilityName: userData?.user?.hospital || "Mama Lucy Kibaki Hospital",
@@ -108,12 +110,49 @@ const VisualImpairments = ({ userData }) => {
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form Data Submitted:", JSON.stringify(formData, null, 2));
-    // Here you would typically send formData to your backend API
-    // e.g., axios.post('/api/visual-impairments', formData);
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  try {
+    // Correct payload structure
+    const assessmentData = {
+      formData, // Your form data object
+      comments: "Assessment completed by medical officer", // Optional
+      digitalSignature: true,
+      uploadedReports: [] // Add file IDs if you have uploaded files
+    };
+
+    console.log("Submitting assessment:", assessmentData);
+
+    // Correct API endpoint
+    const response = await fetch(`${API_BASE_URL}${userData.user.assesmentId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
+      },
+      body: JSON.stringify(assessmentData)
+    });
+
+    // Better error handling
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("Assessment submitted successfully:", data);
+    
+    // Handle success (e.g., show success message, redirect, etc.)
+    alert("Assessment submitted successfully!");
+    
+  } catch (error) {
+    console.error("Error submitting assessment:", error);
+    // Show user-friendly error message
+    alert(`Failed to submit assessment: ${error.message}`);
+  }
+};
+
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white border border-gray-200 rounded-lg shadow-md">

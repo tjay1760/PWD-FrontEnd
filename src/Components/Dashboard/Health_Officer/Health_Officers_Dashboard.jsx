@@ -18,10 +18,11 @@ import Tickheart from "../../../assets/vuesax-linear-heart-tick.svg";
 import HeartSearch from "../../../assets/vuesax-linear-heart-search.svg";
 import LinearLike from "../../../assets/vuesax-linear-like.svg";
 import LinearLovely from "../../../assets/vuesax-linear-lovely.svg";
-import AssessmentsTable from "../AssesmentsTable";
+import MedicalOfficerTable from './MedicalOfficerTable';
 import CalendarView from "../CalendarView";
 import { DisabilityAssessmentChart } from '../Doctor/Doctors_chart';
 import { MedicalAssessmentsMap } from './HealthOfficerMap';
+import AssessmentsTable from '../AssesmentsTable';
 
 const Health_Officers_Dashboard = ({userData}) => {
     const userName = userData ? `${userData.fullName}` : "Guest";
@@ -189,15 +190,16 @@ const Health_Officers_Dashboard = ({userData}) => {
         </div>
       </div>
       {/* Assessments Table */}
-      <div className="data-section flex gap-6 justify-between">
+      <div className="data-section grid gap-6 border px-6 grid-cols-2">
   <div className="bg-white rounded-lg p-6 border border-gray-400 mb-6">
         <h1 className="text-xl font-bold mb-4 text-green-700">Medical Officers Approval List</h1>
         <h2 className="text-lg font-semibold mb-4 text-gray-800">Below is a list of all Medical Officers for your approval</h2>
-        <AssessmentsTable />
+        <MedicalOfficerTable />
         </div>
-        <MedicalAssessmentsMap />
+           <AssessmentsTable />
+        
       </div>
-    
+    <MedicalAssessmentsMap />
     </div>
   )
 }

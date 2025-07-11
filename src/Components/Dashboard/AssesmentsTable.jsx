@@ -36,9 +36,7 @@ function AssessmentsTable({ onShowPwdProfile }) { // <--- Add onShowPwdProfile p
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
-  // REMOVE THESE STATES: These belong in the parent (Dashboard.jsx)
-  // const [showPwdProfile, setShowPwdProfile] = useState(false);
-  // const [currentPwdData, setCurrentPwdData] = useState(null);
+
 
   useEffect(() => {
     const fetchAssignedAssessments = async () => {
@@ -146,7 +144,7 @@ function AssessmentsTable({ onShowPwdProfile }) { // <--- Add onShowPwdProfile p
 
     // Fetch user data directly when the row is clicked (excluding checkbox click)
     if (row && row.pwdId) {
-      
+      console.log("this is the row:", row)  
         const userId = row.pwdId;
         const API_BASE_URL = 'http://localhost:5000/api';
         const accessToken = localStorage.getItem('accessToken');
@@ -176,6 +174,8 @@ function AssessmentsTable({ onShowPwdProfile }) { // <--- Add onShowPwdProfile p
             } else {
                 const userData = await response.json();
                                userData.user.hospital = row.hospital
+                               userData.user.assesmentId = row.id
+                               
                 // CALL THE onShowPwdProfile PROP TO TELL THE PARENT TO SHOW THE PROFILE
                 if (onShowPwdProfile) { // Ensure the prop exists before calling
                   onShowPwdProfile(userData); // Assuming your backend returns { data: userObject }
