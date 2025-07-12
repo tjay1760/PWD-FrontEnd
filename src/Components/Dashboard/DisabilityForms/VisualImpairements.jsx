@@ -8,8 +8,8 @@ import { Snackbar, Alert } from '@mui/material';
 const API_BASE_URL = "http://localhost:5000/api/assessments/submit/";
 
 // Accept onSubmissionSuccess prop to trigger modal close from parent
-const VisualImpairments = ({ userData, onSubmissionSuccess, handleBackFromPwdProfile }) => {
-  const officer = JSON.parse(localStorage.getItem("userData"));
+const VisualImpairments = ({ userData, onSubmissionSuccess, onSubmissionError }) => {
+
 
   const [formData, setFormData] = useState({
     facilityName: userData?.user?.hospital || "Mama Lucy Kibaki Hospital",
@@ -84,9 +84,7 @@ const VisualImpairments = ({ userData, onSubmissionSuccess, handleBackFromPwdPro
   });
 
   // State for Snackbar (toast notifications)
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // 'success', 'error', 'warning', 'info'
+ 
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -111,9 +109,9 @@ const VisualImpairments = ({ userData, onSubmissionSuccess, handleBackFromPwdPro
     });
   };
 
-  const handleSubmit = async (e) => {
+   const handleSubmit = async (e) => {
     e.preventDefault();
-    setOpenSnackbar(false); // Close any existing snackbars before new submission
+    // setOpenSnackbar(false); // No longer needed here
 
     try {
       const assessmentData = {
@@ -142,34 +140,19 @@ const VisualImpairments = ({ userData, onSubmissionSuccess, handleBackFromPwdPro
       const data = await response.json();
       console.log("Assessment submitted successfully:", data);
 
-      // Show success toast notification
-      setSnackbarMessage("Assessment submitted successfully!");
-      setSnackbarSeverity("success");
-      setOpenSnackbar(true);
-
-      // Automatically close the modal (if a prop is provided for it)
+      // Call the parent's success handler, passing the message
       if (onSubmissionSuccess) {
-        onSubmissionSuccess();
+        onSubmissionSuccess("Assessment submitted successfully!");
       }
-      handleBackFromPwdProfile();
 
     } catch (error) {
       console.error("Error submitting assessment:", error);
-      // Show error toast notification
-      setSnackbarMessage(`Failed to submit assessment: ${error.message}`);
-      setSnackbarSeverity("error");
-      setOpenSnackbar(true);
+      // Call the parent's error handler, passing the message
+      if (onSubmissionError) {
+        onSubmissionError(`Failed to submit assessment: ${error.message}`);
+      }
     }
   };
-
-  // Handler for closing the Snackbar
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpenSnackbar(false);
-  };
-
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white border border-gray-200 rounded-lg shadow-md">
       {/* Header */}
@@ -636,20 +619,6 @@ const VisualImpairments = ({ userData, onSubmissionSuccess, handleBackFromPwdPro
       </form>
 
       {/* Snackbar for toast notifications */}
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={6000} // Automatically hide after 6 seconds
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }} // Position the toast
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbarSeverity} // 'success' or 'error'
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </div>
   );
 };

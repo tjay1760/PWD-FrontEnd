@@ -3,7 +3,9 @@ import { Calendar, User } from "lucide-react";
 import wheelChairMan from "../../../assets/Wheelchair man.png"; // Adjust the path as necessary
 import { format } from "date-fns";
 
-const MaxillofacialImparements = ({ userData }) => {
+const API_BASE_URL = "http://localhost:5000/api/assessments/submit/";
+
+const MaxillofacialImparements = ({ userData, onSubmissionSuccess, onSubmissionError }) => {
   const [formData, setFormData] = useState({
     facilityName: userData?.user?.hospital || "Mama Lucy Kibaki Hospital", // Use userData for initial values
     assessmentDate: format(Date.now(), "yyyy-MM-dd"), // Format current date
@@ -25,17 +27,49 @@ const MaxillofacialImparements = ({ userData }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here, formData contains all the collected data in the desired JSON structure
-    console.log("Payload to be sent to backend:", JSON.stringify(formData, null, 2));
-    // In a real application, you would send this 'formData' object to your backend API
-    // Example: fetch('/api/maxillofacial-assessments', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(formData),
-    // });
-    alert("Form data logged to console. Check your browser's developer tools!");
+    // setOpenSnackbar(false); // No longer needed here
+
+    try {
+      const assessmentData = {
+        formData,
+        comments: "Assessment completed by medical officer",
+        digitalSignature: true,
+        uploadedReports: []
+      };
+
+      console.log("Submitting assessment:", assessmentData);
+
+      const response = await fetch(`${API_BASE_URL}${userData.user.assesmentId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
+        },
+        body: JSON.stringify(assessmentData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Assessment submitted successfully:", data);
+
+      // Call the parent's success handler, passing the message
+      if (onSubmissionSuccess) {
+        onSubmissionSuccess("Assessment submitted successfully!");
+      }
+
+    } catch (error) {
+      console.error("Error submitting assessment:", error);
+      // Call the parent's error handler, passing the message
+      if (onSubmissionError) {
+        onSubmissionError(`Failed to submit assessment: ${error.message}`);
+      }
+    }
   };
 
   return (

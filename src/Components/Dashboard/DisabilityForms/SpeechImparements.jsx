@@ -2,8 +2,9 @@ import React from 'react';
 import { Calendar } from "lucide-react";
 import wheelChairMan from "../../../assets/Wheelchair man.png"; // Adjust the path as necessary
 import { format } from "date-fns";
+const API_BASE_URL = "http://localhost:5000/api/assessments/submit/"; // Uncomment if needed for API calls
 
-const SpeechImparements = ({ userData }) => {
+const SpeechImparements = ({ userData, onSubmissionSuccess, onSubmissionError }) => {
   const [formData, setFormData] = React.useState({
     facilityName: userData?.user?.hospital || "Mama Lucy Kibaki Hospital",
     assessmentDate: format(Date.now(), 'yyyy-MM-dd'), // Format for date input
@@ -147,10 +148,49 @@ const SpeechImparements = ({ userData }) => {
   //   console.log(formData);
   // }, [formData]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Payload to be sent to backend:", JSON.stringify(formData, null, 2));
-    alert("Form data logged to console. Check your browser's developer tools!");
+    // setOpenSnackbar(false); // No longer needed here
+
+    try {
+      const assessmentData = {
+        formData,
+        comments: "Assessment completed by medical officer",
+        digitalSignature: true,
+        uploadedReports: []
+      };
+
+      console.log("Submitting assessment:", assessmentData);
+
+      const response = await fetch(`${API_BASE_URL}${userData.user.assesmentId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
+        },
+        body: JSON.stringify(assessmentData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Assessment submitted successfully:", data);
+
+      // Call the parent's success handler, passing the message
+      if (onSubmissionSuccess) {
+        onSubmissionSuccess("Assessment submitted successfully!");
+      }
+
+    } catch (error) {
+      console.error("Error submitting assessment:", error);
+      // Call the parent's error handler, passing the message
+      if (onSubmissionError) {
+        onSubmissionError(`Failed to submit assessment: ${error.message}`);
+      }
+    }
   };
 
   return (
