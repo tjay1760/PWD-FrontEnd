@@ -13,31 +13,57 @@ import {
   IconButton,
   Button,
   Avatar,
-  CircularProgress, // Import for loading indicator
-  Typography, // Import for error messages
+  CircularProgress,
+  Typography,
+  Snackbar,
+  Alert,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from '@mui/material';
-import { Search, MoreHorizontal, SlidersHorizontal } from 'lucide-react'; // Importing icons from lucide-react
+import { Search, MoreHorizontal, SlidersHorizontal } from 'lucide-react';
 
-const APPROVAL_API_BASE_URL = "http://localhost:5000/api/approve";
+const APPROVAL_API_BASE_URL = "http://localhost:5000/api/users/approve";
 const MEDICAL_OFFICERS_API_BASE_URL = "http://localhost:5000/api/users/medical-officers";
 
-// The component now accepts an 'authToken' prop
 function MedicalOfficerTable({ authToken }) {
-  // State for managing the search bar input
   const [searchText, setSearchText] = useState('');
-  // State for managing the table data
-  const [rows, setRows] = useState([]); // Initialize with empty array as data will be fetched
-  // State for managing selected rows (checkboxes)
+  const [rows, setRows] = useState([]);
   const [selected, setSelected] = useState([]);
-  // State for loading indicator
   const [loading, setLoading] = useState(true);
-  // State for error messages
   const [error, setError] = useState(null);
 
-  // Effect hook to fetch medical officers data on component mount or when authToken changes
+  // Snackbar state
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
+  // Confirmation Dialog state
+  const [openConfirm, setOpenConfirm] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null); // 'approve' or 'reject'
+  const [confirmOfficerId, setConfirmOfficerId] = useState(null);
+  const [confirmOfficerName, setConfirmOfficerName] = useState('');
+
+  // Helper function to show Snackbar
+  const showSnackbar = (message, severity) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setOpenSnackbar(true);
+  };
+
+  // Handler to close Snackbar
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
+
+  // Effect hook to fetch medical officers data
   useEffect(() => {
     const fetchMedicalOfficers = async () => {
-      // If no auth token is provided, we cannot fetch data
       if (!authToken) {
         setError("Authentication token is missing. Please log in.");
         setLoading(false);
@@ -45,8 +71,8 @@ function MedicalOfficerTable({ authToken }) {
       }
 
       try {
-        setLoading(true); // Set loading to true before fetching
-        setError(null); // Clear any previous errors
+        setLoading(true);
+        setError(null);
 
         const response = await fetch(MEDICAL_OFFICERS_API_BASE_URL, {
           method: 'GET',
@@ -58,49 +84,38 @@ function MedicalOfficerTable({ authToken }) {
         });
 
         if (!response.ok) {
-          // If response is not OK, try to parse error message from backend
           const errorData = await response.json();
-          console.log(errorData)
           throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || 'Unknown error'}`);
         }
-        const responseData = await response.json(); // Renamed to avoid confusion with data.medicalOfficers
-        console.log("Raw fetched data:", responseData); // For debugging purposes
+        const responseData = await response.json();
 
-        // Assuming responseData contains a 'medicalOfficers' array directly,
-        // and each item needs to be mapped to fit the table's expected structure.
-        // We need to map `_id` to `id` and combine `full_name.first` and `full_name.last` for `name`.
         const formattedRows = (responseData.medicalOfficers || []).map(officer => ({
-          id: officer._id, // Map _id from backend to id for frontend state management
-          name: `${officer.full_name.first} ${officer.full_name.last}`, // Combine first and last name
+          id: officer._id,
+          name: `${officer.full_name.first} ${officer.full_name.last}`,
           county: officer.county,
-          subCounty: officer.sub_county, // Ensure this matches your backend field
-          email: officer.contact.email, // Added for potential future use or search
-          // You can add other fields as needed for display or filtering
-          // For avatar, you might want to generate from name if no actual avatar URL exists
-          avatar: null, // Set to null or a URL if your data includes it
+          subCounty: officer.sub_county,
+          email: officer.contact.email,
+          // FIX: Ensure approved_by_director is always a boolean
+          approved_by_director: officer.medical_info?.approved_by_director === true,
+          avatar: null,
         }));
 
         setRows(formattedRows);
       } catch (err) {
         console.error("Failed to fetch medical officers:", err);
-        setError(`Failed to load medical officers: ${err.message}. Please ensure you are authorized.`); // Set error message with more detail
+        setError(`Failed to load medical officers: ${err.message}. Please ensure you are authorized.`);
       } finally {
-        setLoading(false); // Set loading to false after fetching (success or failure)
+        setLoading(false);
       }
     };
 
-    fetchMedicalOfficers(); // Call the fetch function
-  }, [authToken]); // Dependency array includes authToken, so it refetches if token changes
+    fetchMedicalOfficers();
+  }, [authToken]);
 
-  console.log("Rows in state:", rows); // For debugging purposes
-
-  // Handler for search input changes
   const handleSearchChange = (event) => {
     setSearchText(event.target.value);
-    // Filtering logic would go here, applied to the `rows` state
   };
 
-  // Handler for selecting/deselecting all rows
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
       const newSelecteds = rows.map((n) => n.id);
@@ -110,7 +125,6 @@ function MedicalOfficerTable({ authToken }) {
     setSelected([]);
   };
 
-  // Handler for individual row checkbox clicks
   const handleClick = (event, id) => {
     const selectedIndex = selected.indexOf(id);
     let newSelected = [];
@@ -130,46 +144,78 @@ function MedicalOfficerTable({ authToken }) {
     setSelected(newSelected);
   };
 
-  // Helper function to check if a row is selected
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
-  // Handler for approving a medical officer
-  const handleApprove = async (officerId) => {
+  // Function to handle opening the confirmation dialog
+  const handleOpenConfirm = (action, officerId, officerName) => {
+    setConfirmAction(action);
+    setConfirmOfficerId(officerId);
+    setConfirmOfficerName(officerName);
+    setOpenConfirm(true);
+  };
+
+  // Function to handle closing the confirmation dialog
+  const handleCloseConfirm = () => {
+    setOpenConfirm(false);
+    setConfirmAction(null);
+    setConfirmOfficerId(null);
+    setConfirmOfficerName('');
+  };
+
+  // Function to execute approval/rejection after confirmation
+  const handleConfirmAction = async () => {
+    handleCloseConfirm(); // Close the dialog immediately
+
     if (!authToken) {
-      setError("Authentication token is missing. Cannot approve.");
+      showSnackbar("Authentication token is missing. Please log in.", "error");
       return;
     }
 
     try {
-      const approveUrl = `${APPROVAL_API_BASE_URL}/${officerId}`;
-      const response = await fetch(approveUrl, {
-        method: 'POST',
+      const approvalUrl = `${APPROVAL_API_BASE_URL}/${confirmOfficerId}`;
+      let method = 'PUT'; // Use PUT for updating status
+      let body = { approved_by_director: confirmAction === 'approve' }; // Send specific field to update
+
+      const response = await fetch(approvalUrl, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`,
         },
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Approval failed! status: ${response.status}, message: ${errorData.message || 'Unknown error'}`);
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
 
-      setRows((prevRows) => prevRows.filter((row) => row.id !== officerId));
-      setSelected((prevSelected) => prevSelected.filter((id) => id !== officerId));
-      console.log(`Medical officer ${officerId} approved successfully.`);
+      // Backend should ideally return the updated officer object, then you can use that.
+      // For now, assume a successful response means the update happened.
+      // FIX: Ensure the update logic correctly changes the specific row's property
+      setRows((prevRows) =>
+        prevRows.map((row) =>
+          row.id === confirmOfficerId
+            ? { ...row, approved_by_director: confirmAction === 'approve' }
+            : row
+        )
+      );
+
+      // Show success toast
+      showSnackbar(
+        `Medical officer ${confirmOfficerName} has been ${confirmAction === 'approve' ? 'approved' : 'rejected'} successfully.`,
+        'success'
+      );
     } catch (err) {
-      console.error(`Error approving officer ${officerId}:`, err);
-      setError(`Failed to approve officer ${officerId}: ${err.message}.`);
+      console.error(`Error ${confirmAction}ing officer ${confirmOfficerId}:`, err);
+      // Show error toast
+      showSnackbar(`Failed to ${confirmAction} officer ${confirmOfficerName}: ${err.message}.`, 'error');
     }
   };
 
   return (
-    // Main container for the component, with responsive padding and background
     <div className="p-4 sm:p-6 md:p-8 bg-gray-100 min-h-screen font-inter">
-      {/* Centered content area with white background and shadow */}
       <div className="max-w-4xl mx-auto bg-white p-4 sm:p-6 rounded-lg shadow-md">
-        {/* Search Bar Component */}
         <TextField
           fullWidth
           variant="outlined"
@@ -201,7 +247,6 @@ function MedicalOfficerTable({ authToken }) {
           }}
         />
 
-        {/* Loading and Error Indicators */}
         {loading && (
           <div className="flex justify-center items-center h-48">
             <CircularProgress />
@@ -214,14 +259,11 @@ function MedicalOfficerTable({ authToken }) {
           </div>
         )}
 
-        {/* Table Component - Only render if not loading and no error */}
         {!loading && !error && (
           <TableContainer component={Paper} className="rounded-lg shadow-sm">
             <Table aria-label="medical officer table">
-              {/* Table Header */}
               <TableHead className="bg-gray-50">
                 <TableRow>
-                  {/* Checkbox for selecting all rows */}
                   <TableCell padding="checkbox" className="w-12">
                     <Checkbox
                       indeterminate={selected.length > 0 && selected.length < rows.length}
@@ -236,7 +278,6 @@ function MedicalOfficerTable({ authToken }) {
                       }}
                     />
                   </TableCell>
-                  {/* Table Headers for Name, County, Sub-County, and Bulk Action */}
                   <TableCell className="font-semibold text-gray-700">Name</TableCell>
                   <TableCell className="font-semibold text-gray-700">
                     County{' '}
@@ -250,25 +291,27 @@ function MedicalOfficerTable({ authToken }) {
                       <SlidersHorizontal size={16} className="text-gray-500" />
                     </IconButton>
                   </TableCell>
+                   <TableCell className="font-semibold text-gray-700">Approval Status</TableCell>
                   <TableCell align="right" className="font-semibold text-gray-700 w-32">
-                    Bulk Action{' '}
+                    Actions{' '}
                     <IconButton size="small">
                       <SlidersHorizontal size={16} className="text-gray-500" />
                     </IconButton>
                   </TableCell>
                 </TableRow>
               </TableHead>
-              {/* Table Body */}
               <TableBody>
                 {rows.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                       No medical officers found.
                     </TableCell>
                   </TableRow>
                 ) : (
                   rows.map((row) => {
                     const isItemSelected = isSelected(row.id);
+                    const isApproved = row.approved_by_director;
+
                     return (
                       <TableRow
                         hover
@@ -276,11 +319,10 @@ function MedicalOfficerTable({ authToken }) {
                         role="checkbox"
                         aria-checked={isItemSelected}
                         tabIndex={-1}
-                        key={row.id} // Use the mapped 'id'
+                        key={row.id}
                         selected={isItemSelected}
                         className="border-b border-gray-200"
                       >
-                        {/* Checkbox for individual row selection */}
                         <TableCell padding="checkbox">
                           <Checkbox
                             checked={isItemSelected}
@@ -293,38 +335,43 @@ function MedicalOfficerTable({ authToken }) {
                             }}
                           />
                         </TableCell>
-                        {/* Name column with Avatar and Name */}
                         <TableCell component="th" scope="row" padding="none">
                           <div className="flex items-center space-x-3 py-2">
-                            {/* Use row.avatar if available, otherwise use a placeholder with the first letter of the name */}
                             <Avatar
                               src={row.avatar || `https://placehold.co/40x40/FF5733/FFFFFF?text=${row.name ? row.name.charAt(0) : '?'}`}
                               alt={row.name}
                               className="w-10 h-10"
                             />
-                            <span className="font-medium text-gray-900">{row.name}</span> {/* Use the mapped 'name' */}
+                            <span className="font-medium text-gray-900">{row.name}</span>
                           </div>
                         </TableCell>
-
-                        {/* County column */}
                         <TableCell className="text-gray-600">{row.county}</TableCell>
-                        {/* Sub-County column */}
-                        <TableCell className="text-gray-600">{row.subCounty}</TableCell> {/* Use the mapped 'subCounty' */}
-                        {/* Action buttons column */}
+                        <TableCell className="text-gray-600">{row.subCounty}</TableCell>
+                        <TableCell className="text-gray-600">
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: isApproved ? '#22c55e' : '#f59e0b',
+                              fontWeight: 'medium',
+                            }}
+                          >
+                            {isApproved ? 'Approved' : 'Pending'}
+                          </Typography>
+                        </TableCell>
                         <TableCell align="right">
                           <div className="flex justify-end items-center space-x-2">
-                            {/* Approve Button */}
                             <Button
                               variant="contained"
                               size="small"
                               onClick={(event) => {
                                 event.stopPropagation();
-                                handleApprove(row.id); // Use the mapped 'id'
+                                handleOpenConfirm('approve', row.id, row.name);
                               }}
+                              disabled={isApproved}
                               sx={{
-                                backgroundColor: '#22c55e',
+                                backgroundColor: isApproved ? '#a7f3d0' : '#22c55e',
                                 '&:hover': {
-                                  backgroundColor: '#16a34a',
+                                  backgroundColor: isApproved ? '#a7f3d0' : '#16a34a',
                                 },
                                 borderRadius: '0.375rem',
                                 textTransform: 'none',
@@ -334,15 +381,18 @@ function MedicalOfficerTable({ authToken }) {
                             >
                               Approve
                             </Button>
-                            {/* Reject Button */}
                             <Button
                               variant="contained"
                               size="small"
-                              onClick={(event) => event.stopPropagation()}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleOpenConfirm('reject', row.id, row.name);
+                              }}
+                              disabled={!isApproved} // Only allow rejecting if currently approved
                               sx={{
-                                backgroundColor: '#ef4444',
+                                backgroundColor: !isApproved ? '#fca5a5' : '#ef4444',
                                 '&:hover': {
-                                  backgroundColor: '#dc2626',
+                                  backgroundColor: !isApproved ? '#fca5a5' : '#dc2626',
                                 },
                                 borderRadius: '0.375rem',
                                 textTransform: 'none',
@@ -352,7 +402,6 @@ function MedicalOfficerTable({ authToken }) {
                             >
                               Reject
                             </Button>
-                            {/* More options icon button */}
                             <IconButton size="small" className="text-gray-500 hover:bg-gray-100 rounded-full">
                               <MoreHorizontal size={20} />
                             </IconButton>
@@ -367,6 +416,40 @@ function MedicalOfficerTable({ authToken }) {
           </TableContainer>
         )}
       </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={openConfirm}
+        onClose={handleCloseConfirm}
+        aria-labelledby="confirm-dialog-title"
+        aria-describedby="confirm-dialog-description"
+      >
+        <DialogTitle id="confirm-dialog-title">
+          {confirmAction === 'approve' ? 'Approve Medical Officer?' : 'Reject Medical Officer?'}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="confirm-dialog-description">
+            Are you sure you want to {confirmAction === 'approve' ? 'approve' : 'reject'} **{confirmOfficerName}**?
+            This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirm} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmAction} color="primary" autoFocus>
+            {confirmAction === 'approve' ? 'Approve' : 'Reject'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for Toast Notifications */}
+      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

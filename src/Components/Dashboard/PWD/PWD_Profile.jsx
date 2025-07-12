@@ -2,12 +2,21 @@ import React, { useState } from "react";
 import { format } from "date-fns";
 import FormToggler from "../DisabilityForms/FormToggler"; // Ensure this path is correct
 
-const PWD_Profile = ({ userData }) => {
+const PWD_Profile = ({
+  userData,
+  handleBackFromPwdProfile,
+  onOpenSnackbar,
+}) => {
   const [showFormPopup, setShowFormPopup] = useState(false);
-  const [selectedDisabilityCategory, setSelectedDisabilityCategory] = useState("");
+  const [selectedDisabilityCategory, setSelectedDisabilityCategory] =
+    useState("");
 
   if (!userData || !userData.user) {
-    return <div className="text-center p-8 text-gray-600">No PWD data available.</div>;
+    return (
+      <div className="text-center p-8 text-gray-600">
+        No PWD data available.
+      </div>
+    );
   }
 
   const {
@@ -22,8 +31,8 @@ const PWD_Profile = ({ userData }) => {
     subCounty,
   } = userData.user;
 
-  const displayDob = dob ? format(new Date(dob), 'dd MMMM yyyy') : 'N/A'; // Added yyyy for completeness
-  const displayRegisteredOn = 'N/A';
+  const displayDob = dob ? format(new Date(dob), "dd MMMM yyyy") : "N/A"; // Added yyyy for completeness
+  const displayRegisteredOn = "N/A";
 
   const handleCategoryChange = (event) => {
     setSelectedDisabilityCategory(event.target.value);
@@ -43,6 +52,23 @@ const PWD_Profile = ({ userData }) => {
     setShowFormPopup(false);
     setSelectedDisabilityCategory(""); // Reset selected category when closing
   };
+  const handleSubmissionSuccessAndClose = (message) => {
+    setShowFormPopup(false); // Close the form popup
+    setSelectedDisabilityCategory(""); // Reset selected category
+    if (onOpenSnackbar) {
+      console.log("Submission successful:", message);
+      onOpenSnackbar(message, "success"); // Call the parent's snackbar function
+    }
+    handleBackFromPwdProfile(); // Call the function to navigate back
+  };
+
+  const handleSubmissionErrorAndClose = (message) => {
+    setShowFormPopup(false); // Close the form popup even on error
+    setSelectedDisabilityCategory(""); // Reset selected category
+    if (onOpenSnackbar) {
+      onOpenSnackbar(message, "error"); // Call the parent's snackbar function
+    }
+  };
 
   return (
     <div className="flex border justify-between items-start w-full p-10 gap-10">
@@ -50,11 +76,20 @@ const PWD_Profile = ({ userData }) => {
         <div className="w-full mx-auto bg-white rounded-lg shadow-sm p-4 flex items-center justify-between border border-gray-200">
           <div className="flex items-center space-x-4">
             <div className="w-14 h-14 bg-green-900 text-white rounded-full flex items-center justify-center text-lg font-semibold">
-              {fullName ? fullName.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : 'NS'}
+              {fullName
+                ? fullName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .substring(0, 2)
+                    .toUpperCase()
+                : "NS"}
             </div>
             <div>
-              <p className="text-green-900 font-semibold">{fullName || 'N/A'}</p>
-              <p className="text-gray-500 text-sm">{email || 'N/A'}</p>
+              <p className="text-green-900 font-semibold">
+                {fullName || "N/A"}
+              </p>
+              <p className="text-gray-500 text-sm">{email || "N/A"}</p>
             </div>
           </div>
           <div className="flex space-x-1">
@@ -72,39 +107,45 @@ const PWD_Profile = ({ userData }) => {
             </div>
             <div>
               <p className="mb-1">County</p>
-              <p className="font-semibold text-gray-800">{county || 'N/A'}</p>
+              <p className="font-semibold text-gray-800">{county || "N/A"}</p>
             </div>
             <div>
               <p className="mb-1">Sub-County</p>
-              <p className="font-semibold text-gray-800">{subCounty || 'N/A'}</p>
+              <p className="font-semibold text-gray-800">
+                {subCounty || "N/A"}
+              </p>
             </div>
             <div>
               <p className="mb-1">National ID</p>
-              <p className="font-semibold text-gray-800">{nationalId || 'N/A'}</p>
+              <p className="font-semibold text-gray-800">
+                {nationalId || "N/A"}
+              </p>
             </div>
             <div>
               <p className="mb-1">Gender</p>
-              <p className="font-semibold text-gray-800">{gender || 'N/A'}</p>
+              <p className="font-semibold text-gray-800">{gender || "N/A"}</p>
             </div>
             <div>
               <p className="mb-1">Registered on</p>
-              <p className="font-semibold text-gray-800">{displayRegisteredOn}</p>
+              <p className="font-semibold text-gray-800">
+                {displayRegisteredOn}
+              </p>
             </div>
             <div>
               <p className="mb-1">Marital Status</p>
-              <p className="font-semibold text-gray-800">{'N/A'}</p>
+              <p className="font-semibold text-gray-800">{"N/A"}</p>
             </div>
             <div>
               <p className="mb-1">Next of KIN</p>
-              <p className="font-semibold text-gray-800">{'N/A'}</p>
+              <p className="font-semibold text-gray-800">{"N/A"}</p>
             </div>
             <div>
               <p className="mb-1">Next of KIN relationship</p>
-              <p className="font-semibold text-gray-800">{'N/A'}</p>
+              <p className="font-semibold text-gray-800">{"N/A"}</p>
             </div>
             <div>
               <p className="mb-1">Next of KIN Contacts</p>
-              <p className="font-semibold text-gray-800">{'N/A'}</p>
+              <p className="font-semibold text-gray-800">{"N/A"}</p>
             </div>
           </div>
         </div>
@@ -119,7 +160,10 @@ const PWD_Profile = ({ userData }) => {
             </span>
           </div>
           <div>
-            <label htmlFor="disabilityCategory" className="block text-xs font-bold text-blue-900 uppercase mb-1">
+            <label
+              htmlFor="disabilityCategory"
+              className="block text-xs font-bold text-blue-900 uppercase mb-1"
+            >
               Category
             </label>
             <select
@@ -178,10 +222,22 @@ const PWD_Profile = ({ userData }) => {
       <div className="uploads w-1/3">
         <div className="max-w-md mx-auto border rounded-lg p-4 shadow-sm">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-green-900 font-semibold text-lg">Medical Records</h2>
+            <h2 className="text-green-900 font-semibold text-lg">
+              Medical Records
+            </h2>
             <button className="flex items-center gap-1 text-sm text-gray-600 border rounded-md px-2 py-1 hover:bg-gray-100">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 4v16m8-8H4"
+                />
               </svg>
               Add Record
             </button>
@@ -195,37 +251,103 @@ const PWD_Profile = ({ userData }) => {
             <div className="divide-y">
               <div className="flex items-center gap-2 p-2 text-sm">
                 <input type="checkbox" />
-                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M7 7h10M7 11h10M7 15h6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg
+                  className="w-4 h-4 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M7 7h10M7 11h10M7 15h6"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
-                <span className="flex-1 truncate">The quick, brown fox jumps over a lazy.pdf</span>
+                <span className="flex-1 truncate">
+                  The quick, brown fox jumps over a lazy.pdf
+                </span>
                 <button>
-                  <svg className="w-4 h-4 text-gray-500 hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v16h16V4H4zm8 4v8m4-4H8" />
+                  <svg
+                    className="w-4 h-4 text-gray-500 hover:text-gray-700"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 4v16h16V4H4zm8 4v8m4-4H8"
+                    />
                   </svg>
                 </button>
               </div>
               <div className="flex items-center gap-2 p-2 text-sm">
                 <input type="checkbox" />
-                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M7 7h10M7 11h10M7 15h6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg
+                  className="w-4 h-4 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M7 7h10M7 11h10M7 15h6"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
-                <span className="flex-1 truncate">The quick, brown fox jumps over a lazy.pdf</span>
+                <span className="flex-1 truncate">
+                  The quick, brown fox jumps over a lazy.pdf
+                </span>
                 <button>
-                  <svg className="w-4 h-4 text-gray-500 hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v16h16V4H4zm8 4v8m4-4H8" />
+                  <svg
+                    className="w-4 h-4 text-gray-500 hover:text-gray-700"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 4v16h16V4H4zm8 4v8m4-4H8"
+                    />
                   </svg>
                 </button>
               </div>
               <div className="flex items-center gap-2 p-2 text-sm">
                 <input type="checkbox" />
-                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M7 7h10M7 11h10M7 15h6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg
+                  className="w-4 h-4 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M7 7h10M7 11h10M7 15h6"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
-                <span className="flex-1 truncate">The quick, brown fox jumps over a lazy.pdf</span>
+                <span className="flex-1 truncate">
+                  The quick, brown fox jumps over a lazy.pdf
+                </span>
                 <button>
-                  <svg className="w-4 h-4 text-gray-500 hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v16h16V4H4zm8 4v8m4-4H8" />
+                  <svg
+                    className="w-4 h-4 text-gray-500 hover:text-gray-700"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 4v16h16V4H4zm8 4v8m4-4H8"
+                    />
                   </svg>
                 </button>
               </div>
@@ -249,7 +371,14 @@ const PWD_Profile = ({ userData }) => {
             <h2 className="text-2xl font-semibold mb-4 text-green-900">
               Disability Assessment Form - {selectedDisabilityCategory}
             </h2>
-            <FormToggler selectedCategory={selectedDisabilityCategory} userData={userData}/>
+            <FormToggler
+              selectedCategory={selectedDisabilityCategory}
+              userData={userData}
+              onSubmissionSuccess={handleSubmissionSuccessAndClose}
+              handleBackFromPwdProfile={handleBackFromPwdProfile}
+              onOpenSnackbar={onOpenSnackbar}
+              onSubmissionError={handleSubmissionErrorAndClose}
+            />
           </div>
         </div>
       )}

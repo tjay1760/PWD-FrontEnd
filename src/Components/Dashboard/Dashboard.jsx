@@ -7,6 +7,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Snackbar, Alert } from '@mui/material';
 
 import authService from '../authService';
 
@@ -31,6 +32,7 @@ import Navbar from './Navbar';
 import PWD_Profile from './PWD/PWD_Profile';
 import Profiles from '../Profiles'; // Make sure this path is correct: Components/Profiles.jsx
 
+
 const UserDashboard = ({ userData, onAppLogout }) => {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [sidebarHovered, setSidebarHovered] = useState(false);
@@ -42,6 +44,9 @@ const UserDashboard = ({ userData, onAppLogout }) => {
   // NEW STATES FOR CURRENT USER'S PROFILE DISPLAY
   const [showCurrentUserProfile, setShowCurrentUserProfile] = useState(false);
 
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const NAVBAR_HEIGHT = '4rem';
 
   const userRole = userData?.role;
@@ -92,7 +97,19 @@ const UserDashboard = ({ userData, onAppLogout }) => {
     setShowCurrentUserProfile(false);
     setCurrentPage('dashboard'); // Return to dashboard or previous view
   };
+  // --- NEW Snackbar Handlers ---
+  const handleOpenSnackbar = (message, severity) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setOpenSnackbar(true);
+  };
 
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
   const renderSidebar = () => {
     let hoverTimeout;
 
@@ -142,6 +159,7 @@ const UserDashboard = ({ userData, onAppLogout }) => {
                 setCurrentPage('dashboard');
                 setShowPwdProfile(false);
                 setShowCurrentUserProfile(false); // Reset profile views when navigating sidebar
+                setOpenSnackbar(false)
               }}
               className={`w-full flex items-center p-3 rounded-lg transition-colors ${
                 isActive('dashboard') ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
@@ -156,6 +174,7 @@ const UserDashboard = ({ userData, onAppLogout }) => {
                 setCurrentPage('assessments');
                 setShowPwdProfile(false);
                 setShowCurrentUserProfile(false); // Reset profile views when navigating sidebar
+                setOpenSnackbar(false)
               }}
               className={`w-full flex items-center p-3 rounded-lg transition-colors ${
                 isActive('assessments') ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
@@ -170,6 +189,7 @@ const UserDashboard = ({ userData, onAppLogout }) => {
                 setCurrentPage('documents');
                 setShowPwdProfile(false);
                 setShowCurrentUserProfile(false); // Reset profile views when navigating sidebar
+                setOpenSnackbar(false)
               }}
               className={`w-full flex items-center p-3 rounded-lg transition-colors ${
                 isActive('documents') ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
@@ -212,7 +232,7 @@ const UserDashboard = ({ userData, onAppLogout }) => {
             Back to Dashboard
           </button>
           {/* Note: PWD_Profile probably takes a 'pwdData' prop, not 'userData' */}
-          <PWD_Profile userData={currentPwdData} />
+          <PWD_Profile userData={currentPwdData} handleBackFromPwdProfile={handleBackFromPwdProfile} onOpenSnackbar={handleOpenSnackbar} />
         </div>
       );
     }
@@ -299,6 +319,20 @@ return <ApproverDashboard userData={userData} onShowPwdProfile={handleShowPwdPro
         <div className={`flex-1 transition-all duration-300 ${sidebarHovered ? 'ml-64' : 'ml-16'}`}>
           {renderContent()}
         </div>
+        <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000} // Automatically hide after 6 seconds
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }} // Position the toast
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbarSeverity} // 'success' or 'error'
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
       </div>
     </div>
   );

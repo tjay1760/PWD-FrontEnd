@@ -2,20 +2,23 @@ import React, { useState } from "react";
 import { Calendar } from "lucide-react";
 import wheelChairMan from "../../../assets/Wheelchair man.png"; // Adjust the path as necessary
 import { format } from "date-fns";
+// Import Material-UI Snackbar and Alert for toast notifications
+import { Snackbar, Alert } from '@mui/material';
+
 const API_BASE_URL = "http://localhost:5000/api/assessments/submit/";
-const VisualImpairments = ({ userData }) => {
+
+// Accept onSubmissionSuccess prop to trigger modal close from parent
+const VisualImpairments = ({ userData, onSubmissionSuccess, handleBackFromPwdProfile }) => {
   const officer = JSON.parse(localStorage.getItem("userData"));
 
   const [formData, setFormData] = useState({
-    // Nested object for patient details (read-only in UI, but part of form data for submission)
     facilityName: userData?.user?.hospital || "Mama Lucy Kibaki Hospital",
-    assessmentDate: format(Date.now(), 'yyyy-MM-dd'), // Format for date input
+    assessmentDate: format(Date.now(), 'yyyy-MM-dd'),
     patientFullName: userData?.user?.fullName || "",
     patientPhone: userData?.user?.phone || "",
     medicalHistory: "",
     ocularHistory: "",
 
-    // Distance Visual Acuity - structured similar to your hearing form
     distanceVisualAcuity: {
       withCorrection: {
         rightEye: "",
@@ -29,7 +32,6 @@ const VisualImpairments = ({ userData }) => {
       },
     },
 
-    // Ophthalmic Examination - now nested for right and left eye
     ophthalmicExamination: {
       rightEye: {
         presentEyeball: "",
@@ -59,14 +61,12 @@ const VisualImpairments = ({ userData }) => {
       },
     },
 
-    // Specialized Tests and their Findings
     specializedTests: {
       humphreysVisualField: "",
       colourVision: "",
       stereopsis: "",
     },
 
-    // Conclusion - Category Selection (checkboxes) and other fields
     conclusion: {
       categoryNormal: false,
       categoryMildImpairment: false,
@@ -76,33 +76,34 @@ const VisualImpairments = ({ userData }) => {
       categoryNearVisionImpairment: false,
       causeOfVisionImpairment: "",
       disabilityPercentage: "",
-      possibleIntervention: "", // "yes" or "no"
+      possibleIntervention: "",
       recommendation: "",
     },
 
-    // Disability Type Selection (top-level as it applies to the overall disability)
-    disabilityType: "", // "temporary" or "permanent"
+    disabilityType: "",
   });
+
+  // State for Snackbar (toast notifications)
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // 'success', 'error', 'warning', 'info'
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
 
     setFormData((prev) => {
-      // Split the name by dots to handle nested objects
       const nameParts = name.split('.');
       let updatedData = { ...prev };
       let currentLevel = updatedData;
 
-      // Traverse through the nested structure
       for (let i = 0; i < nameParts.length - 1; i++) {
         const part = nameParts[i];
         if (!currentLevel[part]) {
-          currentLevel[part] = {}; // Initialize if not exists
+          currentLevel[part] = {};
         }
         currentLevel = currentLevel[part];
       }
 
-      // Set the final value
       const lastPart = nameParts[nameParts.length - 1];
       currentLevel[lastPart] = type === "checkbox" ? checked : value;
 
@@ -110,49 +111,64 @@ const VisualImpairments = ({ userData }) => {
     });
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  try {
-    // Correct payload structure
-    const assessmentData = {
-      formData, // Your form data object
-      comments: "Assessment completed by medical officer", // Optional
-      digitalSignature: true,
-      uploadedReports: [] // Add file IDs if you have uploaded files
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setOpenSnackbar(false); // Close any existing snackbars before new submission
 
-    console.log("Submitting assessment:", assessmentData);
+    try {
+      const assessmentData = {
+        formData,
+        comments: "Assessment completed by medical officer",
+        digitalSignature: true,
+        uploadedReports: []
+      };
 
-    // Correct API endpoint
-    const response = await fetch(`${API_BASE_URL}${userData.user.assesmentId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
-      },
-      body: JSON.stringify(assessmentData)
-    });
+      console.log("Submitting assessment:", assessmentData);
 
-    // Better error handling
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      const response = await fetch(`${API_BASE_URL}${userData.user.assesmentId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
+        },
+        body: JSON.stringify(assessmentData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Assessment submitted successfully:", data);
+
+      // Show success toast notification
+      setSnackbarMessage("Assessment submitted successfully!");
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
+
+      // Automatically close the modal (if a prop is provided for it)
+      if (onSubmissionSuccess) {
+        onSubmissionSuccess();
+      }
+      handleBackFromPwdProfile();
+
+    } catch (error) {
+      console.error("Error submitting assessment:", error);
+      // Show error toast notification
+      setSnackbarMessage(`Failed to submit assessment: ${error.message}`);
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
     }
+  };
 
-    const data = await response.json();
-    console.log("Assessment submitted successfully:", data);
-    
-    // Handle success (e.g., show success message, redirect, etc.)
-    alert("Assessment submitted successfully!");
-    
-  } catch (error) {
-    console.error("Error submitting assessment:", error);
-    // Show user-friendly error message
-    alert(`Failed to submit assessment: ${error.message}`);
-  }
-};
-
+  // Handler for closing the Snackbar
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white border border-gray-200 rounded-lg shadow-md">
@@ -184,7 +200,7 @@ const handleSubmit = async (e) => {
             <div>
               <input
                 type="text"
-                name="assessmentDetails.hospital" // Use nested name
+                name="assessmentDetails.hospital"
                 readOnly
                 value={formData.facilityName}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-100 cursor-not-allowed"
@@ -195,7 +211,7 @@ const handleSubmit = async (e) => {
             <div className="relative">
               <input
                 type="text"
-                name="assessmentDetails.assessmentDate" // Use nested name
+                name="assessmentDetails.assessmentDate"
                 readOnly
                 value={formData.assessmentDate}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-100 cursor-not-allowed"
@@ -211,14 +227,14 @@ const handleSubmit = async (e) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <input
             type="text"
-            value={formData.patientFullName} // Use nested value
+            value={formData.patientFullName}
             readOnly
             className="border rounded px-3 py-2 w-full bg-gray-100 cursor-not-allowed"
             aria-label="Applicant Full Name"
           />
           <input
             type="text"
-            value={formData.patientPhone} // Use nested value
+            value={formData.patientPhone}
             readOnly
             className="border rounded px-3 py-2 w-full bg-gray-100 cursor-not-allowed"
             aria-label="Applicant Phone Number"
@@ -264,7 +280,7 @@ const handleSubmit = async (e) => {
               <div>With Correction</div>
               <input
                 type="text"
-                name="distanceVisualAcuity.withCorrection.rightEye" // Nested name
+                name="distanceVisualAcuity.withCorrection.rightEye"
                 value={formData.distanceVisualAcuity.withCorrection.rightEye}
                 onChange={handleInputChange}
                 className="border rounded px-2 py-1"
@@ -272,7 +288,7 @@ const handleSubmit = async (e) => {
               />
               <input
                 type="text"
-                name="distanceVisualAcuity.withCorrection.leftEye" // Nested name
+                name="distanceVisualAcuity.withCorrection.leftEye"
                 value={formData.distanceVisualAcuity.withCorrection.leftEye}
                 onChange={handleInputChange}
                 className="border rounded px-2 py-1"
@@ -280,7 +296,7 @@ const handleSubmit = async (e) => {
               />
               <input
                 type="text"
-                name="distanceVisualAcuity.withCorrection.nearVisionTest" // Nested name
+                name="distanceVisualAcuity.withCorrection.nearVisionTest"
                 value={formData.distanceVisualAcuity.withCorrection.nearVisionTest}
                 onChange={handleInputChange}
                 className="border rounded px-2 py-1"
@@ -291,7 +307,7 @@ const handleSubmit = async (e) => {
               <div>Without Correction</div>
               <input
                 type="text"
-                name="distanceVisualAcuity.withoutCorrection.rightEye" // Nested name
+                name="distanceVisualAcuity.withoutCorrection.rightEye"
                 value={formData.distanceVisualAcuity.withoutCorrection.rightEye}
                 onChange={handleInputChange}
                 className="border rounded px-2 py-1"
@@ -299,7 +315,7 @@ const handleSubmit = async (e) => {
               />
               <input
                 type="text"
-                name="distanceVisualAcuity.withoutCorrection.leftEye" // Nested name
+                name="distanceVisualAcuity.withoutCorrection.leftEye"
                 value={formData.distanceVisualAcuity.withoutCorrection.leftEye}
                 onChange={handleInputChange}
                 className="border rounded px-2 py-1"
@@ -307,7 +323,7 @@ const handleSubmit = async (e) => {
               />
               <input
                 type="text"
-                name="distanceVisualAcuity.withoutCorrection.nearVisionTest" // Nested name
+                name="distanceVisualAcuity.withoutCorrection.nearVisionTest"
                 value={formData.distanceVisualAcuity.withoutCorrection.nearVisionTest}
                 onChange={handleInputChange}
                 className="border rounded px-2 py-1"
@@ -349,7 +365,6 @@ const handleSubmit = async (e) => {
                   "Conjunctiva",
                   "Lens",
                 ].map((examination, index) => {
-                  // Generate a camelCase field name for the examination
                   const fieldName = examination.replace(/\s+/g, '');
                   return (
                     <tr
@@ -362,7 +377,7 @@ const handleSubmit = async (e) => {
                       <td className="py-2 px-4 border-t border-l border-gray-200">
                         <input
                           type="text"
-                          name={`ophthalmicExamination.rightEye.${fieldName}`} // Nested name
+                          name={`ophthalmicExamination.rightEye.${fieldName}`}
                           value={formData.ophthalmicExamination.rightEye[fieldName]}
                           onChange={handleInputChange}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
@@ -372,7 +387,7 @@ const handleSubmit = async (e) => {
                       <td className="py-2 px-4 border-t border-l border-gray-200">
                         <input
                           type="text"
-                          name={`ophthalmicExamination.leftEye.${fieldName}`} // Nested name
+                          name={`ophthalmicExamination.leftEye.${fieldName}`}
                           value={formData.ophthalmicExamination.leftEye[fieldName]}
                           onChange={handleInputChange}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
@@ -395,7 +410,7 @@ const handleSubmit = async (e) => {
             <div>
               <input
                 type="text"
-                name="specializedTests.humphreysVisualField" // Nested name
+                name="specializedTests.humphreysVisualField"
                 value={formData.specializedTests.humphreysVisualField}
                 onChange={handleInputChange}
                 placeholder="Humphreys Visual Field"
@@ -406,7 +421,7 @@ const handleSubmit = async (e) => {
             <div>
               <input
                 type="text"
-                name="specializedTests.colourVision" // Nested name
+                name="specializedTests.colourVision"
                 value={formData.specializedTests.colourVision}
                 onChange={handleInputChange}
                 placeholder="Colour Vision"
@@ -419,7 +434,7 @@ const handleSubmit = async (e) => {
           <div className="max-w-md">
             <input
               type="text"
-              name="specializedTests.stereopsis" // Nested name
+              name="specializedTests.stereopsis"
               value={formData.specializedTests.stereopsis}
               onChange={handleInputChange}
               placeholder="Stereopsis"
@@ -443,7 +458,7 @@ const handleSubmit = async (e) => {
                 <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
-                    name="conclusion.categoryNormal" // Nested name
+                    name="conclusion.categoryNormal"
                     checked={formData.conclusion.categoryNormal}
                     onChange={handleInputChange}
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -453,7 +468,7 @@ const handleSubmit = async (e) => {
                 <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
-                    name="conclusion.categoryMildImpairment" // Nested name
+                    name="conclusion.categoryMildImpairment"
                     checked={formData.conclusion.categoryMildImpairment}
                     onChange={handleInputChange}
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -463,7 +478,7 @@ const handleSubmit = async (e) => {
                 <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
-                    name="conclusion.categoryModerateImpairment" // Nested name
+                    name="conclusion.categoryModerateImpairment"
                     checked={formData.conclusion.categoryModerateImpairment}
                     onChange={handleInputChange}
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -473,7 +488,7 @@ const handleSubmit = async (e) => {
                 <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
-                    name="conclusion.categorySevereImpairment" // Nested name
+                    name="conclusion.categorySevereImpairment"
                     checked={formData.conclusion.categorySevereImpairment}
                     onChange={handleInputChange}
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -483,7 +498,7 @@ const handleSubmit = async (e) => {
                 <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
-                    name="conclusion.categoryBlind" // Nested name
+                    name="conclusion.categoryBlind"
                     checked={formData.conclusion.categoryBlind}
                     onChange={handleInputChange}
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -493,7 +508,7 @@ const handleSubmit = async (e) => {
                 <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
-                    name="conclusion.categoryNearVisionImpairment" // Nested name
+                    name="conclusion.categoryNearVisionImpairment"
                     checked={formData.conclusion.categoryNearVisionImpairment}
                     onChange={handleInputChange}
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -508,7 +523,7 @@ const handleSubmit = async (e) => {
               <label className="block text-sm text-gray-600 mb-2" htmlFor="causeOfVisionImpairment">Cause of Vision Impairment</label>
               <textarea
                 id="causeOfVisionImpairment"
-                name="conclusion.causeOfVisionImpairment" // Nested name
+                name="conclusion.causeOfVisionImpairment"
                 value={formData.conclusion.causeOfVisionImpairment}
                 onChange={handleInputChange}
                 rows={3}
@@ -525,7 +540,7 @@ const handleSubmit = async (e) => {
                 <input
                   type="number"
                   id="disabilityPercentage"
-                  name="conclusion.disabilityPercentage" // Nested name
+                  name="conclusion.disabilityPercentage"
                   value={formData.conclusion.disabilityPercentage}
                   onChange={handleInputChange}
                   min="0"
@@ -541,7 +556,7 @@ const handleSubmit = async (e) => {
                   <label className="flex items-center space-x-2">
                     <input
                       type="radio"
-                      name="conclusion.possibleIntervention" // Nested name
+                      name="conclusion.possibleIntervention"
                       value="yes"
                       checked={formData.conclusion.possibleIntervention === "yes"}
                       onChange={handleInputChange}
@@ -552,7 +567,7 @@ const handleSubmit = async (e) => {
                   <label className="flex items-center space-x-2">
                     <input
                       type="radio"
-                      name="conclusion.possibleIntervention" // Nested name
+                      name="conclusion.possibleIntervention"
                       value="no"
                       checked={formData.conclusion.possibleIntervention === "no"}
                       onChange={handleInputChange}
@@ -569,7 +584,7 @@ const handleSubmit = async (e) => {
               <label className="block text-sm text-gray-600 mb-2" htmlFor="recommendation">Recommendation</label>
               <textarea
                 id="recommendation"
-                name="conclusion.recommendation" // Nested name
+                name="conclusion.recommendation"
                 value={formData.conclusion.recommendation}
                 onChange={handleInputChange}
                 rows={3}
@@ -619,6 +634,22 @@ const handleSubmit = async (e) => {
           </button>
         </div>
       </form>
+
+      {/* Snackbar for toast notifications */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000} // Automatically hide after 6 seconds
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }} // Position the toast
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbarSeverity} // 'success' or 'error'
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
