@@ -156,14 +156,14 @@ const PasswordSetupComponent = ({ onPasswordSetupComplete, formData }) => {
         // Add officer-specific fields only if the role is an officer type
         if (isOfficer) {
             dataToSend.officerType = formData.officerType; // Send original string too if backend expects it
-            dataToSend.countyOfPractice = formData.countyOfPractice;
+            dataToSend.county = formData.countyOfPractice;
             dataToSend.medicalFacility = formData.medicalFacility;
             dataToSend.medicalLicenceNumber = formData.medicalLicenceNumber;
             dataToSend.speciality = formData.speciality;
             // The officer's specific subCounty of practice will be in formData.subCounty,
             // which is already being sent as dataToSend.subCounty.
             // If it's a different field entirely on the backend, adjust here:
-            // dataToSend.officerSubCountyOfPractice = formData.officerSubCounty;
+            dataToSend.subCounty = formData.subCounty;
         }
 
         // Add PWD-specific fields (Next of Kin)

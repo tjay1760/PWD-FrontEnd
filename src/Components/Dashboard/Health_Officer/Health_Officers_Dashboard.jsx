@@ -24,9 +24,12 @@ import { DisabilityAssessmentChart } from '../Doctor/Doctors_chart';
 import { MedicalAssessmentsMap } from './HealthOfficerMap';
 import AssessmentsTable from '../AssesmentsTable';
 
+const authToken = localStorage.getItem("accessToken");
+
 const Health_Officers_Dashboard = ({userData}) => {
     const userName = userData ? `${userData.fullName}` : "Guest";
   console.log("User Data dashboard:", userData.role); // For debugging purposes
+  const userRole = userData ? userData.role : "Guest";
   return (
     <div>
             <div className="flex items-start mb-6 gap-4 justify-around">
@@ -194,10 +197,10 @@ const Health_Officers_Dashboard = ({userData}) => {
   <div className="bg-white rounded-lg p-6 border border-gray-400 mb-6">
         <h1 className="text-xl font-bold mb-4 text-green-700">Medical Officers Approval List</h1>
         <h2 className="text-lg font-semibold mb-4 text-gray-800">Below is a list of all Medical Officers for your approval</h2>
-        <MedicalOfficerTable />
+        <MedicalOfficerTable authToken={authToken} />
         </div>
-           <AssessmentsTable />
-        
+           <AssessmentsTable authToken={authToken} userRole={userRole} />
+
       </div>
     <MedicalAssessmentsMap />
     </div>

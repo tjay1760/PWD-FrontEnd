@@ -234,7 +234,7 @@ const Registration = ({ onRegistrationComplete, onLoginClick }) => {
       // Include officer-specific fields only if 'Officer' is selected
       ...(selectedRoles.includes("Officer") && {
         officerType: selectedOfficer, // 'Medical Assessment Officer' or 'County Health Director'
-        countyOfPractice: countyOfPractice,
+        county: countyOfPractice,
         subCounty: subCounty, // This is the officer's subCounty if distinct
         medicalFacility: medicalFacility,
         medicalLicenceNumber: medicalLicenceNumber,

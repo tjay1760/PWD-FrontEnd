@@ -23,7 +23,7 @@ import { MoreVertical, ArrowUp, ArrowDown } from 'lucide-react'; // Remove Arrow
 // import PWD_Profile from './PWD/PWD_Profile';
 
 // ACCEPT onShowPwdProfile as a prop
-function AssessmentsTable({ onShowPwdProfile }) { // <--- Add onShowPwdProfile prop
+function AssessmentsTable({ onShowPwdProfile, userRole }) { // <--- Add onShowPwdProfile prop
   const [assessments, setAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -38,76 +38,80 @@ function AssessmentsTable({ onShowPwdProfile }) { // <--- Add onShowPwdProfile p
 
 
 
-  useEffect(() => {
-    const fetchAssignedAssessments = async () => {
-      const API_BASE_URL = 'http://localhost:5000/api';
-      const accessToken = localStorage.getItem('accessToken');
+ useEffect(() => {
+  const fetchAssessments = async () => {
+    const API_BASE_URL = 'http://localhost:5000/api';
+    const accessToken = localStorage.getItem('accessToken');
 
-      if (!accessToken) {
-        setError("No access token found. Please ensure the medical officer is logged in.");
-        setLoading(false);
-        return;
-      }
+    if (!accessToken) {
+      setError("No access token found. Please ensure you're logged in.");
+      setLoading(false);
+      return;
+    }
 
-      try {
-        setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/assessments/assigned`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`
-          }
-        });
+    let endpoint = '/assessments/assigned'; // default to medical officer
+    if (userRole === 'county_director') {
+      endpoint = '/assessments/county';
+    }
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          let errorMessage = 'Failed to fetch assigned assessments.';
-          if (response.status === 401) {
-            errorMessage = "Unauthorized. The access token might be expired or invalid. Please try logging in again.";
-          } else if (response.status === 403) {
-            errorMessage = "Forbidden. Your account might not have the 'medical_officer' role, or it might not be approved by a county director yet.";
-          } else if (response.status === 404) {
-            errorMessage = "Medical officer profile not found.";
-          }
-          setError(errorMessage);
-          console.error('Fetch error details:', response.status, errorData);
-          setAssessments([]);
-        } else {
-          const data = await response.json();
-          const formattedAssessments = data.assessments.map(item => ({
-            id: item.id,
-            pwdId: item.pwdId, // Assuming this is correctly coming from backend now
-            pwdName: item.pwdName,
-            avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
-            evaluationType: item.assessmentCategory,
-            status: item.status.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase()),
-            date: new Date(item.assessmentDate).toLocaleDateString('en-US', {
-              weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-            }),
-            rawDate: new Date(item.assessmentDate),
-            pwdGender: item.pwdGender,
-            pwdAge: item.pwdAge,
-            county: item.county,
-            hospital: item.hospital,
-            createdAt: item.createdAt,
-          }));
-          setAssessments(formattedAssessments);
-          setError(null);
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+          'Cache-Control': 'no-cache'
         }
-      } catch (err) {
-        console.error('Network or unexpected error:', err);
-        setError("A network error occurred. Please try again.");
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        let errorMessage = 'Failed to fetch assessments.';
+        if (response.status === 401) {
+          errorMessage = "Unauthorized. Your session may have expired.";
+        } else if (response.status === 403) {
+          errorMessage = "Forbidden. You may not have permission to access these assessments.";
+        } else if (response.status === 404) {
+          errorMessage = "No assessments found.";
+        }
+        setError(errorMessage);
+        console.error('Fetch error details:', response.status, errorData);
         setAssessments([]);
-      } finally {
-        setLoading(false);
+      } else {
+        const data = await response.json();
+        const formattedAssessments = data.assessments.map(item => ({
+          id: item.id,
+          pwdId: item.pwdId,
+          pwdName: item.pwdName,
+          avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
+          evaluationType: item.assessmentCategory,
+          status: item.status.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase()),
+          date: new Date(item.assessmentDate).toLocaleDateString('en-US', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+          }),
+          rawDate: new Date(item.assessmentDate),
+          pwdGender: item.pwdGender,
+          pwdAge: item.pwdAge,
+          county: item.county,
+          hospital: item.hospital,
+          createdAt: item.createdAt,
+        }));
+        setAssessments(formattedAssessments);
+        setError(null);
       }
-    };
+    } catch (err) {
+      console.error('Network or unexpected error:', err);
+      setError("A network error occurred. Please try again.");
+      setAssessments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // ALWAYS fetch assessments here regardless of PWD profile state
-    // The conditional rendering of PWD profile is now handled by Dashboard.jsx
-    fetchAssignedAssessments();
-
-  }, []); // <--- Remove showPwdProfile from dependency array
+  fetchAssessments();
+}, [userRole]);
+ // <--- Remove showPwdProfile from dependency array
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
